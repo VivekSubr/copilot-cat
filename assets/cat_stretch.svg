@@ -1,0 +1,71 @@
+<svg viewBox="0 0 210 225" xmlns="http://www.w3.org/2000/svg">
+  <!-- Tail raised high and curled -->
+  <path d="M 75,120 C 60,100 48,72 44,48 C 40,28 46,12 52,6 C 58,0 66,4 64,14 C 62,24 58,40 60,58 C 62,76 68,100 72,116" fill="#7f849c" stroke="#45475a" stroke-width="2.2"/>
+  <path d="M 52,6 C 58,0 66,4 64,14 C 62,8 56,2 52,6Z" fill="#cdd6f4"/>
+
+  <!-- Back legs (standing tall - butt is up) -->
+  <path d="M 68,148 C 60,158 56,172 58,186 C 60,194 66,198 72,196" fill="#7f849c"/>
+  <path d="M 60,182 C 58,190 60,196 66,198 C 70,199 74,196 74,192" fill="none" stroke="#45475a" stroke-width="1.8"/>
+  <ellipse cx="66" cy="196" rx="11" ry="5.5" fill="#6c7086" stroke="#45475a" stroke-width="1.5"/>
+  <circle cx="61" cy="197" r="2.5" fill="#f5c2e7" opacity="0.8"/>
+  <circle cx="66" cy="198" r="2" fill="#f5c2e7" opacity="0.8"/>
+  <circle cx="71" cy="197" r="2.5" fill="#f5c2e7" opacity="0.8"/>
+  <path d="M 142,148 C 150,158 154,172 152,186 C 150,194 144,198 138,196" fill="#7f849c"/>
+  <path d="M 150,182 C 152,190 150,196 144,198 C 140,199 136,196 136,192" fill="none" stroke="#45475a" stroke-width="1.8"/>
+  <ellipse cx="144" cy="196" rx="11" ry="5.5" fill="#6c7086" stroke="#45475a" stroke-width="1.5"/>
+  <circle cx="139" cy="197" r="2.5" fill="#f5c2e7" opacity="0.8"/>
+  <circle cx="144" cy="198" r="2" fill="#f5c2e7" opacity="0.8"/>
+  <circle cx="149" cy="197" r="2.5" fill="#f5c2e7" opacity="0.8"/>
+
+  <!-- Body - rear raised, chest dropped low -->
+  <path d="M 68,170 C 80,174 130,174 142,170 C 150,164 152,154 150,142 C 148,132 144,122 140,116 C 136,110 132,108 126,110 Q 148,76 140,56 Q 128,66 118,80 C 112,76 98,76 92,80 Q 82,66 70,56 Q 62,76 84,110 C 78,108 74,110 70,116 C 66,122 62,132 60,142 C 58,154 60,164 68,170 Z" fill="#7f849c" stroke="#45475a" stroke-width="2.5" stroke-linejoin="round"/>
+
+  <!-- Ear inners -->
+  <path d="M 86,106 Q 72,78 80,62 Q 88,74 96,94 Z" fill="white"/>
+  <path d="M 124,106 Q 138,78 130,62 Q 122,74 114,94 Z" fill="white"/>
+
+  <!-- Belly -->
+  <ellipse cx="105" cy="148" rx="30" ry="12" fill="#bac2de"/>
+
+  <!-- Front legs extended forward and flat -->
+  <path d="M 82,158 C 74,168 64,182 58,196 C 54,204 58,210 66,212" fill="#7f849c"/>
+  <path d="M 62,200 C 56,206 58,210 64,212 C 70,213 76,210 76,206" fill="none" stroke="#45475a" stroke-width="2"/>
+  <ellipse cx="66" cy="210" rx="11" ry="5.5" fill="#6c7086" stroke="#45475a" stroke-width="1.5"/>
+  <circle cx="61" cy="211" r="2.5" fill="#f5c2e7" opacity="0.8"/>
+  <circle cx="66" cy="212" r="2" fill="#f5c2e7" opacity="0.8"/>
+  <circle cx="71" cy="211" r="2.5" fill="#f5c2e7" opacity="0.8"/>
+  <path d="M 128,158 C 136,168 146,182 152,196 C 156,204 152,210 144,212" fill="#7f849c"/>
+  <path d="M 148,200 C 154,206 152,210 146,212 C 140,213 134,210 134,206" fill="none" stroke="#45475a" stroke-width="2"/>
+  <ellipse cx="144" cy="210" rx="11" ry="5.5" fill="#6c7086" stroke="#45475a" stroke-width="1.5"/>
+  <circle cx="139" cy="211" r="2.5" fill="#f5c2e7" opacity="0.8"/>
+  <circle cx="144" cy="212" r="2" fill="#f5c2e7" opacity="0.8"/>
+  <circle cx="149" cy="211" r="2.5" fill="#f5c2e7" opacity="0.8"/>
+
+  <!-- Muzzle (lowered) -->
+  <ellipse cx="105" cy="132" rx="22" ry="13" fill="#cdd6f4"/>
+  <path d="M 105,102.05 C 101.7,94.35 94,94.35 94,97.65 C 94,102.05 105,107 105,107 C 105,107 116,102.05 116,97.65 C 116,94.35 108.3,94.35 105,102.05Z" fill="#cdd6f4"/>
+  <!-- Squinty happy eyes -->
+  <ellipse cx="84" cy="116" rx="15" ry="11" fill="white" stroke="#45475a" stroke-width="2.5"/>
+  <ellipse cx="84" cy="118" rx="12" ry="9" fill="#fab387"/>
+  <ellipse cx="84" cy="114" rx="11" ry="4" fill="#e8956a" opacity="0.4"/>
+  <ellipse cx="84" cy="119" rx="6" ry="5" fill="#1e1e2e"/>
+  <circle cx="90" cy="112" r="4.2" fill="white"/>
+  <circle cx="80" cy="119" r="2.6" fill="white" opacity="0.8"/>
+  <ellipse cx="126" cy="116" rx="15" ry="11" fill="white" stroke="#45475a" stroke-width="2.5"/>
+  <ellipse cx="126" cy="118" rx="12" ry="9" fill="#89b4fa"/>
+  <ellipse cx="126" cy="114" rx="11" ry="4" fill="#5e8ad4" opacity="0.4"/>
+  <ellipse cx="126" cy="119" rx="6" ry="5" fill="#1e1e2e"/>
+  <circle cx="132" cy="112" r="4.2" fill="white"/>
+  <circle cx="122" cy="119" r="2.6" fill="white" opacity="0.8"/>
+  <!-- Open yawn mouth -->
+  <ellipse cx="105" cy="140" rx="9" ry="6" fill="#313244" stroke="#45475a" stroke-width="1.2"/>
+  <ellipse cx="105" cy="138" rx="5" ry="2.5" fill="#45475a"/>
+  <g stroke="#6c7086" stroke-width="1" fill="none" opacity="0.6">
+    <path d="M 83,135 Q 57,130 30,128"/>
+    <path d="M 81,139 Q 53,139 25,139"/>
+    <path d="M 83,143 Q 57,148 33,153"/>
+    <path d="M 127,135 Q 153,130 180,128"/>
+    <path d="M 129,139 Q 157,139 185,139"/>
+    <path d="M 127,143 Q 153,148 177,153"/>
+  </g>
+</svg>

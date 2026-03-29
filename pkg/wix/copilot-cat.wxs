@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  WiX v4 installer for Copilot Cat
+  Build: wix build pkg/wix/copilot-cat.wxs -o copilot-cat.msi -d BuildDir=build\Release
+-->
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="Copilot Cat"
+           Manufacturer="CopilotCat"
+           Version="1.0.0"
+           UpgradeCode="e7a3f1b2-5c4d-4e6f-8a9b-1c2d3e4f5a6b">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Copilot Cat is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Install directory -->
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="Copilot Cat">
+        <Directory Id="PLATFORMSDIR" Name="platforms" />
+        <Directory Id="QMLDIR" Name="qml" />
+      </Directory>
+    </StandardDirectory>
+
+    <!-- Main component: exe + config -->
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="MainExecutable" Guid="a1b2c3d4-e5f6-7890-abcd-ef1234567890">
+        <File Id="CopilotCatExe" Source="!(bindpath.BuildDir)\copilot-cat.exe" KeyPath="yes" />
+        <File Id="ConfigJson" Source="!(bindpath.BuildDir)\copilot-cat.json" />
+
+        <!-- Start Menu shortcut -->
+        <Shortcut Id="StartMenuShortcut"
+                  Name="Copilot Cat"
+                  Directory="ProgramMenuFolder"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Advertise="yes" />
+
+        <!-- Startup shortcut (optional, disabled by default) -->
+        <!-- Uncomment to auto-start with Windows:
+        <Shortcut Id="StartupShortcut"
+                  Name="Copilot Cat"
+                  Directory="StartupFolder"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Advertise="yes" />
+        -->
+      </Component>
+
+      <!-- Qt DLLs - harvested at build time -->
+      <Component Id="QtDlls" Guid="b2c3d4e5-f6a7-8901-bcde-f12345678901">
+        <File Source="!(bindpath.BuildDir)\Qt6Core.dll" />
+        <File Source="!(bindpath.BuildDir)\Qt6Gui.dll" />
+        <File Source="!(bindpath.BuildDir)\Qt6Network.dll" />
+        <File Source="!(bindpath.BuildDir)\Qt6Qml.dll" />
+        <File Source="!(bindpath.BuildDir)\Qt6Quick.dll" />
+        <File Source="!(bindpath.BuildDir)\Qt6QuickControls2.dll" />
+        <File Source="!(bindpath.BuildDir)\Qt6WebSockets.dll" />
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="ProductFeature" Title="Copilot Cat" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+  </Package>
+</Wix>

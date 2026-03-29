@@ -1,0 +1,31 @@
+{
+  "name": "copilot-cat",
+  "version": "1.0.0",
+  "description": "Desktop pet cat MCP server for GitHub Copilot",
+  "type": "module",
+  "main": "dist/server.js",
+  "bin": {
+    "copilot-cat-mcp": "dist/server.js"
+  },
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/server.js"
+  },
+  "keywords": [
+    "mcp",
+    "copilot",
+    "desktop-pet"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.28.0",
+    "ws": "^8.20.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/ws": "^8.18.1",
+    "typescript": "^6.0.2"
+  }
+}

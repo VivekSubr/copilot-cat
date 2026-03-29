@@ -1,0 +1,12 @@
+Package: copilot-cat
+Version: 1.0.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: libqt6core6, libqt6gui6, libqt6network6, libqt6qml6, libqt6quick6, libqt6quickcontrols2-6, libqt6websockets6
+Maintainer: CopilotCat <copilot-cat@github.com>
+Description: Desktop pet cat AI assistant for GitHub Copilot
+ A desktop pet cat that serves as a visual interface for GitHub
+ Copilot via MCP. Features animated cat sprite, speech bubbles,
+ and AI chat powered by Copilot (MCP), OpenRouter, or custom commands.
+Homepage: https://github.com/copilot-cat

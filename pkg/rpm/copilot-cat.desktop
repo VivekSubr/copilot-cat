@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Copilot Cat
+Comment=Desktop pet cat AI assistant
+Exec=copilot-cat
+Type=Application
+Categories=Utility;
+StartupNotify=false

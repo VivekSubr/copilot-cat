@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>copilot-cat</id>
+    <version>1.0.0</version>
+    <title>Copilot Cat</title>
+    <authors>CopilotCat</authors>
+    <projectUrl>https://github.com/copilot-cat</projectUrl>
+    <tags>copilot ai desktop-pet cat mcp</tags>
+    <summary>Desktop pet cat AI assistant for GitHub Copilot</summary>
+    <description>
+A desktop pet cat that serves as a visual interface for GitHub Copilot via MCP.
+Features animated cat sprite, speech bubbles, and chat powered by Copilot or OpenRouter.
+
+Backends: MCP server (WebSocket), OpenRouter API, or custom command.
+    </description>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
