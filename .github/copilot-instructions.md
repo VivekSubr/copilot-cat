@@ -20,10 +20,23 @@ node dist/server.js  # runs on stdio, connects to cat via WebSocket
 ### Cat UI (compiled C++ exe)
 ```powershell
 cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2022_64
-cmake --build build --config Debug
+cmake --build build --config Release
 ```
 
-There are no tests, linters, or CI/CD workflows in this project.
+There are no linters or CI/CD workflows in this project.
+
+## Tests
+
+**After every code change, all tests MUST be run and pass before considering the change complete.**
+
+Tests run automatically via CTest as part of the build (`cmake --build build --config Release`). To run them standalone:
+
+```powershell
+ctest --test-dir build --output-on-failure -C Release
+```
+
+- `test-chat-dedup` — Unit tests for chat dedup guard logic (QML + server)
+- `test-qml-structure` — Structural tests for QML component properties (selectability, animation settings)
 
 ## Architecture
 

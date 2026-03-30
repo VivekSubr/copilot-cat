@@ -21,6 +21,7 @@ const server = new McpServer({ name: "copilot-cat", version: "1.0.0" });
 // WebSocket connection to cat UI
 let wsConn: { send: (data: string) => void; close: () => void } | null = null;
 let pendingResolve: ((response: string) => void) | null = null;
+let chatProcessing = false;
 
 // Chat history for MCP sampling context
 const chatHistory: Array<{ role: "user" | "assistant"; content: { type: "text"; text: string } }> = [];
@@ -158,14 +159,26 @@ function handleCatMessage(msg: { type: string; text?: string }) {
   }
   // Direct chat from cat UI (user typed in the bubble)
   if (msg.type === "chat" && msg.text) {
+    if (chatProcessing) {
+      console.error(`[copilot-cat] Ignoring duplicate chat while processing: "${msg.text}"`);
+      return;
+    }
+    chatProcessing = true;
     console.error(`[copilot-cat] Chat: "${msg.text}"`);
     sendToCat({ type: "show_bubble", text: "Thinking... 🐱" });
     callCopilotChat(msg.text).then((reply) => {
       console.error(`[copilot-cat] Reply: "${reply.slice(0, 50)}..."`);
-      sendToCat({ type: "show_bubble", text: reply });
+      // Only send the reply bubble if NOT using MCP sampling.
+      // When sampling is active, the Copilot client already calls say_to_cat.
+      const hasSampling = !!server.server.getClientCapabilities()?.sampling;
+      if (!hasSampling) {
+        sendToCat({ type: "show_bubble", text: reply });
+      }
     }).catch((err) => {
       console.error(`[copilot-cat] Chat error:`, err);
       sendToCat({ type: "show_bubble", text: "Meow! Something went wrong..." });
+    }).finally(() => {
+      chatProcessing = false;
     });
   }
 }
@@ -220,6 +233,7 @@ server.tool(
   "Send a message to the desktop cat. Shows as a speech bubble above the cat.",
   { message: z.string().describe("The message to display") },
   async ({ message }) => {
+    console.error(`[DEDUP] say_to_cat TOOL called: "${message.substring(0, 60)}"`);
     const sent = sendToCat({ type: "show_bubble", text: message });
     return { content: [{ type: "text", text: sent ? `Cat says: "${message}"` : "Cat UI not connected." }] };
   }

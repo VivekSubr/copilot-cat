@@ -88,12 +88,17 @@ void CopilotBridge::sendViaOpenRouter(const QString &message)
     while (m_chatHistory.size() > 20)
         m_chatHistory.removeFirst();
 
-    // Build messages array with system prompt
+    // Build messages array with system prompt as first user message
+    // (some models like Gemma don't support the "system" role)
     QJsonArray messages;
     QJsonObject sysMsg;
-    sysMsg["role"] = "system";
-    sysMsg["content"] = QString(SYSTEM_PROMPT);
+    sysMsg["role"] = "user";
+    sysMsg["content"] = QString("[Instructions] ") + QString(SYSTEM_PROMPT);
     messages.append(sysMsg);
+    QJsonObject ack;
+    ack["role"] = "assistant";
+    ack["content"] = QString("Understood! I'm Copilot Cat, ready to help! 😺");
+    messages.append(ack);
     for (const auto &msg : m_chatHistory)
         messages.append(msg);
 
@@ -114,15 +119,21 @@ void CopilotBridge::sendViaOpenRouter(const QString &message)
         reply->deleteLater();
 
         if (reply->error() != QNetworkReply::NoError) {
-            emit errorOccurred(QString("OpenRouter: %1").arg(reply->errorString()));
+            auto body = reply->readAll();
+            int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+            qWarning() << "OpenRouter HTTP" << status << reply->errorString();
+            qWarning() << "OpenRouter response body:" << body.left(500);
+            emit errorOccurred(QString("OpenRouter HTTP %1: %2").arg(status).arg(reply->errorString()));
             setBusy(false);
             return;
         }
 
-        auto doc = QJsonDocument::fromJson(reply->readAll());
+        auto data = reply->readAll();
+        auto doc = QJsonDocument::fromJson(data);
         QString text = doc["choices"][0]["message"]["content"].toString().trimmed();
 
         if (text.isEmpty()) {
+            qWarning() << "OpenRouter empty response:" << data.left(500);
             emit errorOccurred("Empty response from OpenRouter.");
             setBusy(false);
             return;

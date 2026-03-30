@@ -38,3 +38,26 @@ if(WIN32)
         WIN32_EXECUTABLE $<NOT:$<CONFIG:Debug>>
     )
 endif()
+
+# === Tests ===
+enable_testing()
+
+find_program(NODE_EXECUTABLE node REQUIRED)
+
+add_test(NAME test-chat-dedup
+    COMMAND ${NODE_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test-chat-dedup.mjs
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
+add_test(NAME test-qml-structure
+    COMMAND ${NODE_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test-qml-structure.mjs
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
+# Run tests automatically after build
+add_custom_target(run-tests ALL
+    COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -C $<CONFIG>
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    DEPENDS copilot-cat
+    COMMENT "Running tests..."
+)

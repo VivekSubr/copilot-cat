@@ -64,7 +64,14 @@ Item {
         }
     }
 
-    Text {
+    // Click background to dismiss (declared before TextEdit so text gets priority)
+    MouseArea {
+        anchors.fill: parent
+        onClicked: root.hide()
+        cursorShape: Qt.PointingHandCursor
+    }
+
+    TextEdit {
         id: replyText
         anchors {
             top: parent.top
@@ -77,11 +84,9 @@ Item {
         wrapMode: Text.WordWrap
         font.pixelSize: 13
         color: "#cdd6f4"
-    }
-
-    MouseArea {
-        anchors.fill: parent
-        onClicked: root.hide()
-        cursorShape: Qt.PointingHandCursor
+        readOnly: true
+        selectByMouse: true
+        selectedTextColor: "#1e1e2e"
+        selectionColor: "#89b4fa"
     }
 }

@@ -4,14 +4,46 @@
 #include <QQuickStyle>
 #include <QQuickWindow>
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QMutex>
 #include <cstdio>
 #include <cstring>
 #include "copilotbridge.h"
+
+static QFile *g_logFile = nullptr;
+static QMutex g_logMutex;
+
+static void logMessageHandler(QtMsgType type, const QMessageLogContext &ctx, const QString &msg)
+{
+    Q_UNUSED(ctx)
+    const char *level;
+    switch (type) {
+    case QtDebugMsg:    level = "DEBUG"; break;
+    case QtInfoMsg:     level = "INFO";  break;
+    case QtWarningMsg:  level = "WARN";  break;
+    case QtCriticalMsg: level = "ERROR"; break;
+    case QtFatalMsg:    level = "FATAL"; break;
+    }
+
+    QString line = QString("[%1] [%2] %3\n")
+        .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz"))
+        .arg(level)
+        .arg(msg);
+
+    QMutexLocker lock(&g_logMutex);
+    if (g_logFile && g_logFile->isOpen()) {
+        g_logFile->write(line.toUtf8());
+        g_logFile->flush();
+    }
+
+    // Also print to stderr for console debugging
+    fprintf(stderr, "%s", line.toUtf8().constData());
+}
 
 static void printHelp()
 {
@@ -91,6 +123,16 @@ int main(int argc, char *argv[])
     QQuickWindow::setDefaultAlphaBuffer(true);
 
     QGuiApplication app(argc, argv);
+
+    // Set up file logging — recreate copilot-cat.log next to exe on every launch
+    QString logPath = QCoreApplication::applicationDirPath() + "/copilot-cat.log";
+    static QFile logFile(logPath);
+    if (logFile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
+        g_logFile = &logFile;
+        qInstallMessageHandler(logMessageHandler);
+    }
+    qInfo() << "Copilot Cat 1.0.0 starting";
+    qInfo() << "Log file:" << logPath;
     QQuickStyle::setStyle("Basic");
     app.setApplicationName("Copilot Cat");
     app.setOrganizationName("CopilotCat");

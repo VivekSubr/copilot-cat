@@ -35,3 +35,5 @@ Desktop.ini
 # Secrets
 .github_token
 copilot-cat.json
+
+.openrouter-key

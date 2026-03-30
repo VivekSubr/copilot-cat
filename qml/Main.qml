@@ -26,10 +26,13 @@ Window {
     property string catState: "pounce"
     property bool facingRight: true
     property int walkFrame: 0
+    property int walkFrameCounter: 0
     property int tailSwishFrame: 0
     property bool bubbleIsInput: false
     property string bubbleText: ""
     property bool chatMode: false
+    property bool chatReplyPending: false
+    property bool chatReplyReceived: false
     property bool dragArmed: false
     property bool dragging: false
     property real dragOffsetX: 0
@@ -42,6 +45,7 @@ Window {
     property bool savedBubbleIsInput: false
     property bool suppressClick: false
     property int dragHoldDelayMs: 50
+    property bool exitingCat: false
 
     x: 0
     y: restY
@@ -75,8 +79,37 @@ Window {
     Timer { id: reactivateTimer; onTriggered: { ws.active = true; } }
     Timer { id: chatTimeout; interval: 15000; onTriggered: showBubble("Meow! No response from server.", false) }
 
+    property int debugRecvCount: 0
+    property int debugSendCount: 0
+
     function handleMcpMessage(data) {
-        if (data.type === "show_bubble") showBubble(data.text, win.chatMode);
+        if (data.type === "show_bubble") {
+            win.debugRecvCount++;
+            console.log("[DEDUP] recv #" + win.debugRecvCount
+                + " pending=" + win.chatReplyPending
+                + " received=" + win.chatReplyReceived
+                + " chatMode=" + win.chatMode
+                + " text=" + data.text.substring(0, 50));
+
+            if (win.chatReplyReceived) {
+                console.log("[DEDUP] BLOCKED #" + win.debugRecvCount);
+                return;
+            }
+
+            if (win.chatReplyPending) {
+                if (data.text.indexOf("Thinking...") !== 0) {
+                    win.chatReplyPending = false;
+                    win.chatReplyReceived = true;
+                    chatReplyLock.restart();
+                    console.log("[DEDUP] ACCEPTED #" + win.debugRecvCount + " — lock engaged");
+                }
+                showBubble(data.text, false);
+                return;
+            }
+
+            console.log("[DEDUP] PASSTHROUGH #" + win.debugRecvCount + " (not in chat flow)");
+            showBubble(data.text, false);
+        }
         else if (data.type === "ask_user") {
             win.chatMode = false;
             showBubble(data.text, true);
@@ -87,7 +120,13 @@ Window {
             else { win.catState = "idle"; behaviorTimer.start(); }
         }
     }
-    function sendToMcp(msg) { if (ws.status === WebSocket.Open) ws.sendTextMessage(JSON.stringify(msg)); }
+    function sendToMcp(msg) {
+        if (ws.status === WebSocket.Open) {
+            win.debugSendCount++;
+            console.log("[DEDUP] send #" + win.debugSendCount + ": " + JSON.stringify(msg));
+            ws.sendTextMessage(JSON.stringify(msg));
+        }
+    }
 
     // === COPILOT BRIDGE (fallback when MCP not connected) ===
     Connections {
@@ -98,13 +137,18 @@ Window {
 
     function sendChat(msg) {
         var b = copilotBridge.backend;
+        console.log("[DEDUP] sendChat: backend=" + b + " wsConnected=" + win.wsConnected + " chatMode=" + win.chatMode);
         // "mcp" forces WebSocket; "auto" prefers WebSocket when connected
         if (b === "mcp" || (b === "auto" && win.wsConnected)) {
             if (!win.wsConnected) {
                 showBubble("Meow! MCP server not connected on ws://127.0.0.1:9922", false);
                 return;
             }
-            if (win.chatMode) sendToMcp({ type: "chat", text: msg });
+            if (win.chatMode) {
+                win.chatReplyPending = true;
+                win.chatReplyReceived = false;
+                sendToMcp({ type: "chat", text: msg });
+            }
             else sendToMcp({ type: "user_response", text: msg });
             chatTimeout.restart();
         } else {
@@ -123,13 +167,14 @@ Window {
         if (isInput) {
             inputField.text = "";
             focusDelay.start();
-        } else {
+        } else if (!win.chatReplyPending) {
             autoDismiss.restart();
         }
     }
     Timer { id: resizeDelay; interval: 10; onTriggered: resizeForBubble(true) }
     Timer { id: focusDelay; interval: 100; onTriggered: { win.requestActivate(); inputField.forceActiveFocus(); } }
     Timer { id: suppressClickReset; interval: 1; onTriggered: win.suppressClick = false }
+    Timer { id: chatReplyLock; interval: 10000; onTriggered: { win.chatReplyReceived = false; } }
 
     function hideBubble() {
         bubble.visible = false;
@@ -252,10 +297,11 @@ Window {
                 wrapMode: Text.WordWrap
                 font.pixelSize: 13
                 color: "#cdd6f4"
+                textFormat: Text.PlainText
                 readOnly: true
                 selectByMouse: true
-                selectionColor: "#89b4fa"
                 selectedTextColor: "#1e1e2e"
+                selectionColor: "#89b4fa"
             }
         }
 
@@ -341,9 +387,16 @@ Window {
                 }
                 return "file:///C:/Software/copilot-cat/assets/cat_idle.svg";
             }
-            sourceSize.width: 480; sourceSize.height: 480
-            fillMode: Image.PreserveAspectFit; smooth: true
+            sourceSize.width: 210; sourceSize.height: 225
+            fillMode: Image.PreserveAspectFit
+            cache: true
+            asynchronous: false
         }
+
+        // Preload all SVG frames to avoid decode hitches
+        Repeater { model: 4; Image { visible: false; source: "file:///C:/Software/copilot-cat/assets/cat_walk" + (index+1) + ".svg"; sourceSize.width: 210; sourceSize.height: 225; cache: true } }
+        Repeater { model: 4; Image { visible: false; source: "file:///C:/Software/copilot-cat/assets/cat_walk" + (index+1) + "_left.svg"; sourceSize.width: 210; sourceSize.height: 225; cache: true } }
+        Repeater { model: 4; Image { visible: false; source: "file:///C:/Software/copilot-cat/assets/cat_tail_swish" + (index+1) + ".svg"; sourceSize.width: 210; sourceSize.height: 225; cache: true } }
 
         Item {
             id: catHitbox
@@ -358,6 +411,7 @@ Window {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 preventStealing: true
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
 
                 Timer {
                     id: dragHoldTimer
@@ -376,7 +430,9 @@ Window {
                     }
                 }
 
-                onPressed: {
+                onPressed: function(mouse) {
+                    if (win.exitingCat) return;
+                    if (mouse.button === Qt.RightButton) return;
                     win.dragArmed = false;
                     win.dragging = false;
                     win.suppressClick = false;
@@ -421,7 +477,12 @@ Window {
                     win.resumeBehaviorAfterDrag = false;
                     suppressClickReset.restart();
                 }
-                onClicked: {
+                onClicked: function(mouse) {
+                    if (win.exitingCat) return;
+                    if (mouse.button === Qt.RightButton) {
+                        contextMenu.popup();
+                        return;
+                    }
                     if (win.suppressClick) {
                         win.suppressClick = false;
                         return;
@@ -438,6 +499,8 @@ Window {
                     }
                     if (win.catState === "sit") {
                         win.chatMode = true;
+                        win.chatReplyPending = false;
+                        win.chatReplyReceived = false;
                         showBubble("What's on your mind?", true);
                     } else {
                         behaviorTimer.stop();
@@ -446,6 +509,61 @@ Window {
                 }
             }
         }
+    }
+
+    // === CONTEXT MENU (right-click) ===
+    Menu {
+        id: contextMenu
+        MenuItem {
+            text: "Close"
+            onTriggered: win.beginExit()
+        }
+    }
+
+    function beginExit() {
+        if (win.exitingCat) return;
+        win.exitingCat = true;
+        behaviorTimer.stop();
+        autoDismiss.stop();
+        chatTimeout.stop();
+        introAnimation.stop();
+        jumpAnimation.stop();
+
+        var farewells = [
+            "See ya later, hu-meow-n! 😽",
+            "Bye bye! *purrs and vanishes* 🐾",
+            "Gotta bounce! Catch ya on the flip side! 😸",
+            "Time to catnap somewhere else! 💤🐱",
+            "Until next time... *boop* 🐾✨"
+        ];
+        var msg = farewells[Math.floor(Math.random() * farewells.length)];
+        win.catState = "sit";
+        win.bubbleText = msg;
+        win.bubbleIsInput = false;
+        bubble.visible = true;
+        resizeDelay.start();
+        exitSequenceTimer.start();
+    }
+
+    Timer {
+        id: exitSequenceTimer
+        interval: 2000
+        onTriggered: {
+            hideBubble();
+            win.catState = "jump";
+            exitJumpAnimation.start();
+        }
+    }
+
+    SequentialAnimation {
+        id: exitJumpAnimation
+        NumberAnimation { target: win; property: "y"; to: win.y - 120; duration: 300; easing.type: Easing.OutQuad }
+        ScriptAction { script: win.catState = "pounce" }
+        ParallelAnimation {
+            NumberAnimation { target: win; property: "y"; to: win.screenH + 100; duration: 500; easing.type: Easing.InQuad }
+            NumberAnimation { target: win; property: "x"; to: win.x + (win.facingRight ? 200 : -200); duration: 500; easing.type: Easing.InQuad }
+        }
+        ScriptAction { script: Qt.quit() }
     }
 
     // === POUNCE ===
@@ -468,15 +586,16 @@ Window {
         ScriptAction { script: { hideBubble(); win.catState = "idle"; behaviorTimer.start(); } }
     }
 
-    // === WALK ===
-    Timer { interval: 180; running: win.catState === "walking"; repeat: true; onTriggered: win.walkFrame = (win.walkFrame + 1) % 4 }
+    // === WALK (single timer: 33ms = ~30fps, 4px step) ===
     Timer {
-        interval: 16; running: win.catState === "walking"; repeat: true
+        interval: 33; running: win.catState === "walking"; repeat: true
         onTriggered: {
-            var nx = win.x + (win.facingRight ? 2 : -2);
+            var nx = win.x + (win.facingRight ? 4 : -4);
             if (nx > win.screenW - win.width - 10) win.facingRight = false;
             else if (nx < 10) win.facingRight = true;
             win.x = nx;
+            win.walkFrameCounter++;
+            if (win.walkFrameCounter % 5 === 0) win.walkFrame = (win.walkFrame + 1) % 4;
         }
     }
 
@@ -490,7 +609,7 @@ Window {
     // === BEHAVIOR ===
     Timer {
         id: behaviorTimer
-        interval: 3000 + Math.random() * 3000
+        interval: 4000
         repeat: true
         onTriggered: {
             if (bubble.visible) return;

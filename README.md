@@ -55,3 +55,21 @@ Unix example:
 - If Copilot CLI stays on "Loaded 1 MCP server(s)", the server command is usually wrong or wrapped by `npm`/`npx`.
 - The MCP process must write only MCP protocol messages to stdout. This server writes logs to stderr only.
 - Build output must exist at `dist/server.js` before launching the server.
+
+## Plugin
+
+copilot-cat is available as an agency plugin. Once installed, say **"become a cat"** and the desktop cat launches automatically with the MCP server connected.
+
+See [`plugin/README.md`](plugin/README.md) for full installation and usage details.
+
+### Plugin structure
+
+```
+plugin/
+├── .claude-plugin/plugin.json   # Marketplace manifest
+├── agency.json                  # Engine targeting (Copilot)
+├── agents/cat-companion.md      # "become a cat" agent
+├── skills/launch-cat/SKILL.md   # Launch orchestration
+├── config.md                    # Paths, ports, protocol reference
+└── README.md                    # User-facing docs
+```
