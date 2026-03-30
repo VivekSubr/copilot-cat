@@ -1,4 +1,4 @@
-import math, os
+import math, os, re
 
 # Color palette
 C = {
@@ -191,49 +191,102 @@ def make_walk(frame):
 </svg>'''
 
 def make_stretch():
-    '''Cat stretching forward - front low, butt raised, yawning'''
-    cx = 105
+    '''Cat stretching - side profile matching walk style.
+    Front legs extended far forward, chest very low, rear raised, tail up, yawning.'''
+    BODY = C['body']
+    DARK = C['dark']
+    LIGHT = C['light']
+    WHITE = C['white']
+    PINK = C['pink']
+    NOSE = C['nose']
     return f'''<svg viewBox="0 0 210 225" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(5, 87)">
   <!-- Tail raised high and curled -->
-  <path d="M 75,120 C 60,100 48,72 44,48 C 40,28 46,12 52,6 C 58,0 66,4 64,14 C 62,24 58,40 60,58 C 62,76 68,100 72,116" fill="{C['body']}" stroke="{OL}" stroke-width="2.2"/>
-  <path d="M 52,6 C 58,0 66,4 64,14 C 62,8 56,2 52,6Z" fill="{C['white']}"/>
+  <path d="M 36,68 C 24,52 14,30 10,14 C 6,-2 12,-12 18,-16 C 24,-20 30,-16 28,-8
+           C 26,0 24,16 28,34 C 32,52 38,64 40,70" fill="{BODY}" stroke="{OL}" stroke-width="2"/>
+  <path d="M 18,-16 C 24,-20 30,-16 28,-8 C 26,-14 22,-18 18,-16Z" fill="{WHITE}"/>
 
-  <!-- Back legs (standing tall - butt is up) -->
-  <path d="M 68,148 C 60,158 56,172 58,186 C 60,194 66,198 72,196" fill="{C['body']}"/>
-  <path d="M 60,182 C 58,190 60,196 66,198 C 70,199 74,196 74,192" fill="none" stroke="{OL}" stroke-width="1.8"/>
-  {paw(66, 196)}
-  <path d="M 142,148 C 150,158 154,172 152,186 C 150,194 144,198 138,196" fill="{C['body']}"/>
-  <path d="M 150,182 C 152,190 150,196 144,198 C 140,199 136,196 136,192" fill="none" stroke="{OL}" stroke-width="1.8"/>
-  {paw(144, 196)}
+  <!-- Back legs (standing tall - butt is raised) -->
+  <path d="M 40,86 C 36,96 34,108 36,118 C 38,124 42,126 46,124" fill="{BODY}"/>
+  <path d="M 36,114 C 34,120 36,124 40,126 C 44,127 48,124 48,120" fill="none" stroke="{OL}" stroke-width="1.6"/>
+  <ellipse cx="42" cy="124" rx="8" ry="4" fill="{DARK}" stroke="{OL}" stroke-width="1.4"/>
+  <circle cx="38" cy="125" r="2" fill="{PINK}" opacity="0.8"/>
+  <circle cx="42" cy="126" r="1.6" fill="{PINK}" opacity="0.8"/>
+  <circle cx="46" cy="125" r="2" fill="{PINK}" opacity="0.8"/>
+  <path d="M 56,86 C 52,96 50,108 52,118 C 54,124 58,126 62,124" fill="{BODY}"/>
+  <path d="M 52,114 C 50,120 52,124 56,126 C 60,127 64,124 64,120" fill="none" stroke="{OL}" stroke-width="1.6"/>
+  <ellipse cx="58" cy="124" rx="8" ry="4" fill="{DARK}" stroke="{OL}" stroke-width="1.4"/>
+  <circle cx="54" cy="125" r="2" fill="{PINK}" opacity="0.8"/>
+  <circle cx="58" cy="126" r="1.6" fill="{PINK}" opacity="0.8"/>
+  <circle cx="62" cy="125" r="2" fill="{PINK}" opacity="0.8"/>
 
-  <!-- Body - rear raised, chest dropped low -->
-  <path d="M 68,170 C 80,174 130,174 142,170 C 150,164 152,154 150,142 C 148,132 144,122 140,116 C 136,110 132,108 126,110 Q 148,76 140,56 Q 128,66 118,80 C 112,76 98,76 92,80 Q 82,66 70,56 Q 62,76 84,110 C 78,108 74,110 70,116 C 66,122 62,132 60,142 C 58,154 60,164 68,170 Z" fill="{C['body']}" stroke="{OL}" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Body - rear raised, chest very low (diagonal slope) -->
+  <path d="M 44,76 C 56,72 76,78 92,90 C 108,102 118,110 122,114"
+        fill="{BODY}" stroke="{OL}" stroke-width="2.2"/>
+  <ellipse cx="62" cy="80" rx="26" ry="18" fill="{BODY}" stroke="{OL}" stroke-width="2.2"/>
+  <ellipse cx="62" cy="84" rx="18" ry="10" fill="{LIGHT}"/>
+  <!-- Lower body toward head -->
+  <ellipse cx="108" cy="108" rx="24" ry="16" fill="{BODY}" stroke="{OL}" stroke-width="2.2"/>
+  <ellipse cx="108" cy="112" rx="16" ry="8" fill="{LIGHT}"/>
 
-  <!-- Ear inners -->
-  <path d="M 86,106 Q 72,78 80,62 Q 88,74 96,94 Z" fill="white"/>
-  <path d="M 124,106 Q 138,78 130,62 Q 122,74 114,94 Z" fill="white"/>
+  <!-- Front legs extended far forward, flat on ground -->
+  <path d="M 112,112 C 120,118 132,124 142,126 C 148,128 152,126 152,122" fill="{BODY}"/>
+  <path d="M 138,124 C 144,126 150,126 152,122 C 152,120 150,118 146,118" fill="none" stroke="{OL}" stroke-width="1.6"/>
+  <ellipse cx="148" cy="124" rx="8" ry="4" fill="{DARK}" stroke="{OL}" stroke-width="1.4"/>
+  <circle cx="144" cy="125" r="2" fill="{PINK}" opacity="0.8"/>
+  <circle cx="148" cy="126" r="1.6" fill="{PINK}" opacity="0.8"/>
+  <circle cx="152" cy="125" r="2" fill="{PINK}" opacity="0.8"/>
+  <path d="M 118,114 C 126,120 138,126 148,128 C 154,130 158,128 158,124" fill="{BODY}"/>
+  <path d="M 144,126 C 150,128 156,128 158,124 C 158,122 156,120 152,120" fill="none" stroke="{OL}" stroke-width="1.6"/>
+  <ellipse cx="154" cy="126" rx="8" ry="4" fill="{DARK}" stroke="{OL}" stroke-width="1.4"/>
+  <circle cx="150" cy="127" r="2" fill="{PINK}" opacity="0.8"/>
+  <circle cx="154" cy="128" r="1.6" fill="{PINK}" opacity="0.8"/>
+  <circle cx="158" cy="127" r="2" fill="{PINK}" opacity="0.8"/>
 
-  <!-- Belly -->
-  <ellipse cx="{cx}" cy="148" rx="30" ry="12" fill="{C['light']}"/>
+  <!-- Neck fill -->
+  <path d="M 120,104 C 128,98 136,92 142,90 C 148,88 150,92 146,98
+           C 142,104 136,108 130,110 C 126,112 122,110 120,104Z" fill="{BODY}"/>
 
-  <!-- Front legs extended forward and flat -->
-  <path d="M 82,158 C 74,168 64,182 58,196 C 54,204 58,210 66,212" fill="{C['body']}"/>
-  <path d="M 62,200 C 56,206 58,210 64,212 C 70,213 76,210 76,206" fill="none" stroke="{OL}" stroke-width="2"/>
-  {paw(66, 210)}
-  <path d="M 128,158 C 136,168 146,182 152,196 C 156,204 152,210 144,212" fill="{C['body']}"/>
-  <path d="M 148,200 C 154,206 152,210 146,212 C 140,213 134,210 134,206" fill="none" stroke="{OL}" stroke-width="2"/>
-  {paw(144, 210)}
+  <!-- Far ear -->
+  <path d="M 148,68 Q 144,52 150,46 Q 156,54 156,66 Z" fill="{DARK}" stroke="{OL}" stroke-width="1.5"/>
 
-  <!-- Muzzle (lowered) -->
-  <ellipse cx="{cx}" cy="132" rx="22" ry="13" fill="{C['white']}"/>
-  {heart(cx, 96)}
-  <!-- Squinty happy eyes -->
-  {eye(cx-21, 116, 15, 17, C['eyeAmber'], C['eyeAmberDark'], squint=True)}
-  {eye(cx+21, 116, 15, 17, C['eyeBlue'], C['eyeBlueDark'], squint=True)}
+  <!-- Near ear -->
+  <path d="M 168,70 Q 180,46 172,40 Q 162,52 160,68 Z" fill="{BODY}" stroke="{OL}" stroke-width="2"/>
+  <path d="M 166,66 Q 174,50 170,44 Q 164,54 162,64 Z" fill="white"/>
+
+  <!-- Head (low, near ground level) -->
+  <ellipse cx="162" cy="88" rx="30" ry="28" fill="{BODY}" stroke="{OL}" stroke-width="2.5"/>
+
+  <!-- Muzzle -->
+  <ellipse cx="180" cy="98" rx="12" ry="9" fill="{WHITE}"/>
+
+  <!-- Heart -->
+  <path d="M 162,72 C 160,68 155,68 155,72 C 155,76 162,80 162,80
+           C 162,80 169,76 169,72 C 169,68 164,68 162,72Z" fill="{WHITE}"/>
+
+  <!-- Squinty happy eye -->
+  <ellipse cx="174" cy="86" rx="10" ry="7" fill="white" stroke="{OL}" stroke-width="2"/>
+  <ellipse cx="175" cy="88" rx="8" ry="5" fill="{C['eyeAmber']}"/>
+  <ellipse cx="175" cy="86" rx="7" ry="3" fill="{C['eyeAmberDark']}" opacity="0.4"/>
+  <ellipse cx="176" cy="89" rx="4" ry="3" fill="#1e1e2e"/>
+  <circle cx="178" cy="84" r="2.5" fill="white"/>
+  <circle cx="172" cy="91" r="1.5" fill="white" opacity="0.8"/>
+
   <!-- Open yawn mouth -->
-  <ellipse cx="{cx}" cy="140" rx="9" ry="6" fill="#313244" stroke="{OL}" stroke-width="1.2"/>
-  <ellipse cx="{cx}" cy="138" rx="5" ry="2.5" fill="#45475a"/>
-  {whiskers(cx, 138)}
+  <ellipse cx="188" cy="100" rx="6" ry="5" fill="#313244" stroke="{OL}" stroke-width="1"/>
+  <ellipse cx="188" cy="99" rx="3.5" ry="2" fill="{C['darker']}"/>
+
+  <!-- Nose -->
+  <path d="M 188,96 C 186,96 185,97 186,98 C 187,99 188,99 188,99
+           C 188,99 189,99 190,98 C 191,97 190,96 188,96Z" fill="{NOSE}" stroke="{C['noseDark']}" stroke-width="0.5"/>
+
+  <!-- Whiskers -->
+  <g stroke="{DARK}" stroke-width="0.7" fill="none" opacity="0.5">
+    <path d="M 192,98 Q 200,95 208,94"/>
+    <path d="M 192,100 Q 202,100 210,100"/>
+    <path d="M 192,102 Q 200,105 208,108"/>
+  </g>
+  </g>
 </svg>'''
 
 def make_tail_swish(frame):
@@ -338,6 +391,131 @@ def make_jump():
   </g>
 </svg>'''
 
+def _path_nums(d):
+    """Extract all numbers from an SVG path d-attribute string."""
+    return [float(x) for x in re.findall(r'-?\d+(?:\.\d+)?', d)]
+
+def _subdivide_last_cubic(nums):
+    """Split the last cubic bezier segment into two using De Casteljau at t=0.5."""
+    n_segs = (len(nums) - 2) // 6
+    last_idx = 2 + (n_segs - 1) * 6
+    if n_segs >= 2:
+        sx, sy = nums[last_idx - 2], nums[last_idx - 1]
+    else:
+        sx, sy = nums[0], nums[1]
+    ax, ay = nums[last_idx], nums[last_idx + 1]
+    bx, by = nums[last_idx + 2], nums[last_idx + 3]
+    cx, cy = nums[last_idx + 4], nums[last_idx + 5]
+    m_sa_x, m_sa_y = (sx + ax) / 2, (sy + ay) / 2
+    m_ab_x, m_ab_y = (ax + bx) / 2, (ay + by) / 2
+    m_bc_x, m_bc_y = (bx + cx) / 2, (by + cy) / 2
+    m_sab_x, m_sab_y = (m_sa_x + m_ab_x) / 2, (m_sa_y + m_ab_y) / 2
+    m_abc_x, m_abc_y = (m_ab_x + m_bc_x) / 2, (m_ab_y + m_bc_y) / 2
+    mid_x, mid_y = (m_sab_x + m_abc_x) / 2, (m_sab_y + m_abc_y) / 2
+    result = list(nums[:last_idx])
+    result.extend([m_sa_x, m_sa_y, m_sab_x, m_sab_y, mid_x, mid_y])
+    result.extend([m_abc_x, m_abc_y, m_bc_x, m_bc_y, cx, cy])
+    return result
+
+def _build_main_d(nums):
+    """Build main tail path d-attribute from coordinate numbers."""
+    parts = [f"M {int(nums[0])},{int(nums[1])}"]
+    for i in range(2, len(nums), 6):
+        parts.append(f"C {int(nums[i])},{int(nums[i+1])} {int(nums[i+2])},{int(nums[i+3])} {int(nums[i+4])},{int(nums[i+5])}")
+    return " ".join(parts)
+
+def _build_tip_d(nums):
+    """Build tip path d-attribute from coordinate numbers (appends Z)."""
+    parts = [f"M {int(nums[0])},{int(nums[1])}"]
+    for i in range(2, len(nums), 6):
+        parts.append(f"C {int(nums[i])},{int(nums[i+1])} {int(nums[i+2])},{int(nums[i+3])} {int(nums[i+4])},{int(nums[i+5])}")
+    return " ".join(parts) + "Z"
+
+def _lerp_tail(main_a, tip_a, main_b, tip_b):
+    """Interpolate between two tail configurations by averaging coordinates.
+    Normalizes segment counts via De Casteljau subdivision when needed."""
+    nums_a = _path_nums(main_a)
+    nums_b = _path_nums(main_b)
+    while len(nums_a) < len(nums_b):
+        nums_a = _subdivide_last_cubic(nums_a)
+    while len(nums_b) < len(nums_a):
+        nums_b = _subdivide_last_cubic(nums_b)
+    avg_main = [round((a + b) / 2) for a, b in zip(nums_a, nums_b)]
+    tnums_a = _path_nums(tip_a)
+    tnums_b = _path_nums(tip_b)
+    avg_tip = [round((a + b) / 2) for a, b in zip(tnums_a, tnums_b)]
+    return _build_main_d(avg_main), _build_tip_d(avg_tip)
+
+def make_tail_swish_b(frame):
+    '''Idle pose with 8-frame tail swish variant B.
+    Adds intermediate positions between the 4 original frames for smoother animation.
+    frame 0: center-left, 1: quarter-left, 2: far-left, 3: returning from left,
+    4: center-right, 5: quarter-right, 6: far-right, 7: returning from right'''
+    cx = 105
+    orig_main = [
+        "M 68,170 C 52,155 35,135 25,115 C 15,95 18,75 22,65 C 26,55 34,58 33,68 C 32,78 35,95 42,115 C 49,135 60,155 66,166",
+        "M 68,170 C 45,158 20,148 5,140 C -10,132 -12,122 -6,118 C 0,114 10,120 18,130 C 26,140 42,155 64,166",
+        "M 142,170 C 158,155 175,135 185,115 C 195,95 192,75 188,65 C 184,55 176,58 177,68 C 178,78 175,95 168,115 C 161,135 150,155 144,166",
+        "M 142,170 C 165,158 190,148 205,140 C 220,132 222,122 216,118 C 210,114 200,120 192,130 C 184,140 168,155 146,166",
+    ]
+    orig_tip = [
+        "M 22,65 C 26,55 34,58 33,68 C 30,62 26,56 22,65Z",
+        "M -6,118 C 0,114 10,120 18,130 C 8,122 2,116 -6,118Z",
+        "M 188,65 C 184,55 176,58 177,68 C 180,62 184,56 188,65Z",
+        "M 216,118 C 210,114 200,120 192,130 C 202,122 208,116 216,118Z",
+    ]
+    tails = []
+    for i in range(8):
+        if i % 2 == 0:
+            main_d = orig_main[i // 2]
+            tip_d = orig_tip[i // 2]
+        else:
+            idx_a = i // 2
+            idx_b = (i // 2 + 1) % 4
+            main_d, tip_d = _lerp_tail(orig_main[idx_a], orig_tip[idx_a],
+                                        orig_main[idx_b], orig_tip[idx_b])
+        tails.append(f'''<path d="{main_d}" fill="{C['body']}" stroke="{OL}" stroke-width="2.2"/>
+  <path d="{tip_d}" fill="{C['white']}"/>''')
+
+    return f'''<svg viewBox="0 0 210 225" xmlns="http://www.w3.org/2000/svg">
+  <!-- Tail -->
+  {tails[frame]}
+
+  <!-- Back legs -->
+  <path d="M 65,176 C 57,184 52,196 54,206 C 56,212 62,214 68,212" fill="{C['body']}"/>
+  <path d="M 56,200 C 54,206 56,212 62,214 C 66,215 70,212 70,208" fill="none" stroke="{OL}" stroke-width="1.8"/>
+  {paw(62, 212)}
+  <path d="M 145,176 C 148,184 152,196 150,206 C 148,212 142,214 136,212" fill="{C['body']}"/>
+  <path d="M 148,200 C 150,206 148,212 142,214 C 138,215 134,212 134,208" fill="none" stroke="{OL}" stroke-width="1.8"/>
+  {paw(142, 212)}
+
+  <!-- Body+Head+Ears silhouette (same as idle) -->
+  <path d="M 65,198 C 78,202 132,202 145,198 C 153,192 155,182 155,170 C 155,160 156,148 158,132 C 162,115 164,100 156,80 Q 176,38 162,18 Q 146,34 130,58 C 120,50 90,50 80,58 Q 64,34 48,18 Q 34,38 54,80 C 46,100 48,115 52,132 C 56,148 55,160 55,170 C 55,182 57,192 65,198 Z" fill="{C['body']}" stroke="{OL}" stroke-width="2.5" stroke-linejoin="round"/>
+
+  <!-- Ear inners -->
+  <path d="M 58,76 Q 44,44 52,26 Q 62,40 74,62 Z" fill="white"/>
+  <path d="M 152,76 Q 166,44 158,26 Q 148,40 136,62 Z" fill="white"/>
+
+  <!-- Belly -->
+  <ellipse cx="{cx}" cy="176" rx="34" ry="14" fill="{C['light']}"/>
+
+  <!-- Front legs -->
+  <path d="M 80,180 C 76,190 74,200 76,208 C 78,214 84,217 90,215" fill="{C['body']}"/>
+  <path d="M 78,202 C 76,208 78,214 82,216 C 86,217 90,215 92,210" fill="none" stroke="{OL}" stroke-width="2"/>
+  {paw(84, 215)}
+  <path d="M 130,180 C 128,190 126,200 124,208 C 122,214 126,217 132,215" fill="{C['body']}"/>
+  <path d="M 126,202 C 124,208 125,214 130,216 C 135,217 140,215 140,210" fill="none" stroke="{OL}" stroke-width="2"/>
+  {paw(132, 215)}
+
+  <!-- Muzzle -->
+  <ellipse cx="{cx}" cy="120" rx="24" ry="15" fill="{C['white']}"/>
+  {heart(cx, 77)}
+  {eye(cx-23, 97, 17, 19, C['eyeAmber'], C['eyeAmberDark'])}
+  {eye(cx+23, 97, 17, 19, C['eyeBlue'], C['eyeBlueDark'])}
+  {nose_mouth(cx, 122)}
+  {whiskers(cx, 126)}
+</svg>'''
+
 # Generate all
 for name, gen in [('cat_idle', make_idle), ('cat_sit', make_sit), ('cat_stretch', make_stretch), ('cat_jump', make_jump)]:
     path = rf'C:\Software\copilot-cat\assets\{name}.svg'
@@ -357,4 +535,90 @@ for frame in range(4):
     path = rf'C:\Software\copilot-cat\assets\{name}.svg'
     with open(path, 'w') as f:
         f.write(make_tail_swish(frame))
+    print(f'{name}: OK ({os.path.getsize(path)} bytes)')
+
+
+# === Variant B: 8-frame tail swish (interpolated) ===
+
+def make_tail_swish_b(frame):
+    '''8-frame tail swish. Even frames match original 4; odd frames are interpolated.'''
+    cx = 105
+    tails_b = [
+        # Frame 0: center-left (= original 0)
+        f'''<path d="M 68,170 C 52,155 35,135 25,115 C 15,95 18,75 22,65 C 26,55 34,58 33,68 C 32,78 35,95 42,115 C 49,135 60,155 66,166" fill="{C['body']}" stroke="{OL}" stroke-width="2.2"/>
+  <path d="M 22,65 C 26,55 34,58 33,68 C 30,62 26,56 22,65Z" fill="{C['white']}"/>''',
+        # Frame 1: quarter-left (between center-left and far-left)
+        f'''<path d="M 68,170 C 48,156 28,142 15,128 C 2,114 3,98 8,92 C 13,86 22,89 26,99 C 30,109 38,125 53,141 C 55,148 62,158 65,166" fill="{C['body']}" stroke="{OL}" stroke-width="2.2"/>
+  <path d="M 8,92 C 13,86 22,89 26,99 C 19,92 14,87 8,92Z" fill="{C['white']}"/>''',
+        # Frame 2: far-left (= original 1)
+        f'''<path d="M 68,170 C 45,158 20,148 5,140 C -10,132 -12,122 -6,118 C 0,114 10,120 18,130 C 26,140 42,155 64,166" fill="{C['body']}" stroke="{OL}" stroke-width="2.2"/>
+  <path d="M -6,118 C 0,114 10,120 18,130 C 8,122 2,116 -6,118Z" fill="{C['white']}"/>''',
+        # Frame 3: returning from left (between far-left and center-right)
+        f'''<path d="M 105,170 C 95,155 82,142 95,128 C 92,114 90,98 91,92 C 92,86 98,84 100,94 C 102,104 100,125 105,141 C 108,150 106,160 105,166" fill="{C['body']}" stroke="{OL}" stroke-width="2.2"/>
+  <path d="M 91,92 C 92,86 98,84 100,94 C 96,88 93,84 91,92Z" fill="{C['white']}"/>''',
+        # Frame 4: center-right (= original 2)
+        f'''<path d="M 142,170 C 158,155 175,135 185,115 C 195,95 192,75 188,65 C 184,55 176,58 177,68 C 178,78 175,95 168,115 C 161,135 150,155 144,166" fill="{C['body']}" stroke="{OL}" stroke-width="2.2"/>
+  <path d="M 188,65 C 184,55 176,58 177,68 C 180,62 184,56 188,65Z" fill="{C['white']}"/>''',
+        # Frame 5: quarter-right (between center-right and far-right)
+        f'''<path d="M 142,170 C 162,156 182,142 195,128 C 208,114 207,98 202,92 C 197,86 188,89 184,99 C 180,109 172,125 157,141 C 155,148 148,158 145,166" fill="{C['body']}" stroke="{OL}" stroke-width="2.2"/>
+  <path d="M 202,92 C 197,86 188,89 184,99 C 191,92 196,87 202,92Z" fill="{C['white']}"/>''',
+        # Frame 6: far-right (= original 3)
+        f'''<path d="M 142,170 C 165,158 190,148 205,140 C 220,132 222,122 216,118 C 210,114 200,120 192,130 C 184,140 168,155 146,166" fill="{C['body']}" stroke="{OL}" stroke-width="2.2"/>
+  <path d="M 216,118 C 210,114 200,120 192,130 C 202,122 208,116 216,118Z" fill="{C['white']}"/>''',
+        # Frame 7: returning from right (between far-right and center-left)
+        f'''<path d="M 105,170 C 115,155 128,142 115,128 C 118,114 120,98 119,92 C 118,86 112,84 110,94 C 108,104 110,125 105,141 C 102,150 104,160 105,166" fill="{C['body']}" stroke="{OL}" stroke-width="2.2"/>
+  <path d="M 119,92 C 118,86 112,84 110,94 C 114,88 117,84 119,92Z" fill="{C['white']}"/>''',
+    ]
+
+    return f'''<svg viewBox="0 0 210 225" xmlns="http://www.w3.org/2000/svg">
+  <!-- Tail -->
+  {tails_b[frame]}
+
+  <!-- Back legs -->
+  <path d="M 65,176 C 57,184 52,196 54,206 C 56,212 62,214 68,212" fill="{C['body']}"/>
+  <path d="M 56,200 C 54,206 56,212 62,214 C 66,215 70,212 70,208" fill="none" stroke="{OL}" stroke-width="1.8"/>
+  {paw(62, 212)}
+  <path d="M 145,176 C 148,184 152,196 150,206 C 148,212 142,214 136,212" fill="{C['body']}"/>
+  <path d="M 148,200 C 150,206 148,212 142,214 C 138,215 134,212 134,208" fill="none" stroke="{OL}" stroke-width="1.8"/>
+  {paw(142, 212)}
+
+  <!-- Body+Head+Ears silhouette (same as idle) -->
+  <path d="M 65,198 C 78,202 132,202 145,198 C 153,192 155,182 155,170 C 155,160 156,148 158,132 C 162,115 164,100 156,80 Q 176,38 162,18 Q 146,34 130,58 C 120,50 90,50 80,58 Q 64,34 48,18 Q 34,38 54,80 C 46,100 48,115 52,132 C 56,148 55,160 55,170 C 55,182 57,192 65,198 Z" fill="{C['body']}" stroke="{OL}" stroke-width="2.5" stroke-linejoin="round"/>
+
+  <!-- Ear inners -->
+  <path d="M 58,76 Q 44,44 52,26 Q 62,40 74,62 Z" fill="white"/>
+  <path d="M 152,76 Q 166,44 158,26 Q 148,40 136,62 Z" fill="white"/>
+
+  <!-- Belly -->
+  <ellipse cx="{cx}" cy="176" rx="34" ry="14" fill="{C['light']}"/>
+
+  <!-- Front legs -->
+  <path d="M 80,180 C 76,190 74,200 76,208 C 78,214 84,217 90,215" fill="{C['body']}"/>
+  <path d="M 78,202 C 76,208 78,214 82,216 C 86,217 90,215 92,210" fill="none" stroke="{OL}" stroke-width="2"/>
+  {paw(84, 215)}
+  <path d="M 130,180 C 128,190 126,200 124,208 C 122,214 126,217 132,215" fill="{C['body']}"/>
+  <path d="M 126,202 C 124,208 125,214 130,216 C 135,217 140,215 140,210" fill="none" stroke="{OL}" stroke-width="2"/>
+  {paw(132, 215)}
+
+  <!-- Muzzle -->
+  <ellipse cx="{cx}" cy="120" rx="24" ry="15" fill="{C['white']}"/>
+  {heart(cx, 77)}
+  {eye(cx-23, 97, 17, 19, C['eyeAmber'], C['eyeAmberDark'])}
+  {eye(cx+23, 97, 17, 19, C['eyeBlue'], C['eyeBlueDark'])}
+  {nose_mouth(cx, 122)}
+  {whiskers(cx, 126)}
+</svg>'''
+
+for frame in range(8):
+    name = f'cat_tail_swish_b{frame+1}'
+    path = rf'C:\Software\copilot-cat\assets\{name}.svg'
+    with open(path, 'w') as f:
+        f.write(make_tail_swish_b(frame))
+    print(f'{name}: OK ({os.path.getsize(path)} bytes)')
+
+for frame in range(8):
+    name = f'cat_tail_swish_b{frame+1}'
+    path = rf'C:\Software\copilot-cat\assets\{name}.svg'
+    with open(path, 'w') as f:
+        f.write(make_tail_swish_b(frame))
     print(f'{name}: OK ({os.path.getsize(path)} bytes)')

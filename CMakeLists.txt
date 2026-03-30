@@ -44,20 +44,39 @@ enable_testing()
 
 find_program(NODE_EXECUTABLE node REQUIRED)
 
+# Node.js logic tests
 add_test(NAME test-chat-dedup
     COMMAND ${NODE_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test-chat-dedup.mjs
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
-add_test(NAME test-qml-structure
-    COMMAND ${NODE_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test-qml-structure.mjs
+# Qt Quick Tests
+find_package(Qt6 REQUIRED COMPONENTS QuickTest)
+
+qt_add_executable(copilot-cat-tests tests/tst_main.cpp)
+target_link_libraries(copilot-cat-tests PRIVATE
+    Qt6::QuickTest
+    Qt6::Quick
+    Qt6::Qml
+)
+target_compile_definitions(copilot-cat-tests PRIVATE
+    ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets"
+    QML_DIR="${CMAKE_SOURCE_DIR}/qml"
+    QUICK_TEST_SOURCE_DIR="${CMAKE_SOURCE_DIR}/tests"
+)
+
+add_test(NAME test-qt-quick
+    COMMAND copilot-cat-tests
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(test-qt-quick PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=windows;QML2_IMPORT_PATH=${CMAKE_SOURCE_DIR}/qml"
 )
 
 # Run tests automatically after build
 add_custom_target(run-tests ALL
     COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -C $<CONFIG>
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    DEPENDS copilot-cat
+    DEPENDS copilot-cat copilot-cat-tests
     COMMENT "Running tests..."
 )

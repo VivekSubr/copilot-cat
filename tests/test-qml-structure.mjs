@@ -115,10 +115,71 @@ console.log("\n=== Main.qml: Sprite Properties ===\n");
 
 {
   console.log("Test 7: Main sprite Image is not asynchronous");
-  // The primary sprite Image should use synchronous loading
-  // to avoid flicker between animation frames (preloaders handle caching)
   assertNotContains(mainQml, "asynchronous: true",
     "No asynchronous: true on sprite Image (prevents flicker)");
+}
+
+// ============================================================
+// Main.qml — A/B animation variant toggle
+// ============================================================
+
+console.log("\n=== Main.qml: A/B Animation Variant ===\n");
+
+{
+  console.log("Test 8: animVariantB property exists");
+  assertContains(mainQml, "property bool animVariantB", "animVariantB property declared");
+}
+
+{
+  console.log("\nTest 9: F2 keyboard shortcut toggles variant");
+  assertContains(mainQml, /Shortcut\s*\{/, "Shortcut element exists");
+  assertContains(mainQml, '"F2"', "F2 key sequence configured");
+  assertContains(mainQml, "animVariantB = !win.animVariantB", "Shortcut toggles animVariantB");
+}
+
+{
+  console.log("\nTest 10: Variant B walk uses 8 frames");
+  assertContains(mainQml, "cat_walk_b", "Variant B walk SVG prefix referenced");
+  assertContains(mainQml, /walkFrameCount.*8/, "walkFrameCount is 8 for variant B");
+}
+
+{
+  console.log("\nTest 11: Variant B tail swish uses 8 frames");
+  assertContains(mainQml, "cat_tail_swish_b", "Variant B tail swish SVG prefix referenced");
+  assertContains(mainQml, /tailSwishFrameCount.*8/, "tailSwishFrameCount is 8 for variant B");
+}
+
+{
+  console.log("\nTest 12: Variant B preloaders exist");
+  assertContains(mainQml, /Repeater.*model:\s*8.*cat_walk_b/, "8-frame walk_b preloader");
+  assertContains(mainQml, /Repeater.*model:\s*8.*cat_tail_swish_b/, "8-frame tail_swish_b preloader");
+}
+
+// ============================================================
+// SVG files — variant B assets exist
+// ============================================================
+
+import { existsSync } from "fs";
+
+console.log("\n=== SVG Assets: Variant B Files ===\n");
+
+{
+  console.log("Test 13: Variant B walk SVGs exist (8 right + 8 left)");
+  let walkOk = true;
+  for (let i = 1; i <= 8; i++) {
+    if (!existsSync(`assets/cat_walk_b${i}.svg`)) { walkOk = false; break; }
+    if (!existsSync(`assets/cat_walk_b${i}_left.svg`)) { walkOk = false; break; }
+  }
+  assert(walkOk, "All 16 variant B walk SVGs present");
+}
+
+{
+  console.log("\nTest 14: Variant B tail swish SVGs exist (8 frames)");
+  let tailOk = true;
+  for (let i = 1; i <= 8; i++) {
+    if (!existsSync(`assets/cat_tail_swish_b${i}.svg`)) { tailOk = false; break; }
+  }
+  assert(tailOk, "All 8 variant B tail swish SVGs present");
 }
 
 // ============================================================

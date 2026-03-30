@@ -46,6 +46,11 @@ Window {
     property bool suppressClick: false
     property int dragHoldDelayMs: 50
     property bool exitingCat: false
+    property int walkFrameCount: 8
+    property int walkStepPx: 3
+    property int walkFrameMod: 3
+    property int tailSwishFrameCount: 8
+    property int tailSwishMs: 150
 
     x: 0
     y: restY
@@ -380,10 +385,12 @@ Window {
                 if (win.catState === "sit") return "file:///C:/Software/copilot-cat/assets/cat_sit.svg";
                 if (win.catState === "stretch") return "file:///C:/Software/copilot-cat/assets/cat_stretch.svg";
                 if (win.catState === "jump") return "file:///C:/Software/copilot-cat/assets/cat_jump.svg";
-                if (win.catState === "tail_swish") return "file:///C:/Software/copilot-cat/assets/cat_tail_swish" + (win.tailSwishFrame + 1) + ".svg";
+                if (win.catState === "tail_swish") {
+                    return "file:///C:/Software/copilot-cat/assets/cat_tail_swish_b" + (win.tailSwishFrame + 1) + ".svg";
+                }
                 if (win.catState === "walking") {
                     var dir = win.facingRight ? "" : "_left";
-                    return "file:///C:/Software/copilot-cat/assets/cat_walk" + (win.walkFrame+1) + dir + ".svg";
+                    return "file:///C:/Software/copilot-cat/assets/cat_walk_b" + (win.walkFrame+1) + dir + ".svg";
                 }
                 return "file:///C:/Software/copilot-cat/assets/cat_idle.svg";
             }
@@ -394,9 +401,9 @@ Window {
         }
 
         // Preload all SVG frames to avoid decode hitches
-        Repeater { model: 4; Image { visible: false; source: "file:///C:/Software/copilot-cat/assets/cat_walk" + (index+1) + ".svg"; sourceSize.width: 210; sourceSize.height: 225; cache: true } }
-        Repeater { model: 4; Image { visible: false; source: "file:///C:/Software/copilot-cat/assets/cat_walk" + (index+1) + "_left.svg"; sourceSize.width: 210; sourceSize.height: 225; cache: true } }
-        Repeater { model: 4; Image { visible: false; source: "file:///C:/Software/copilot-cat/assets/cat_tail_swish" + (index+1) + ".svg"; sourceSize.width: 210; sourceSize.height: 225; cache: true } }
+        Repeater { model: 8; Image { visible: false; source: "file:///C:/Software/copilot-cat/assets/cat_walk_b" + (index+1) + ".svg"; sourceSize.width: 210; sourceSize.height: 225; cache: true } }
+        Repeater { model: 8; Image { visible: false; source: "file:///C:/Software/copilot-cat/assets/cat_walk_b" + (index+1) + "_left.svg"; sourceSize.width: 210; sourceSize.height: 225; cache: true } }
+        Repeater { model: 8; Image { visible: false; source: "file:///C:/Software/copilot-cat/assets/cat_tail_swish_b" + (index+1) + ".svg"; sourceSize.width: 210; sourceSize.height: 225; cache: true } }
 
         Item {
             id: catHitbox
@@ -586,21 +593,23 @@ Window {
         ScriptAction { script: { hideBubble(); win.catState = "idle"; behaviorTimer.start(); } }
     }
 
-    // === WALK (single timer: 33ms = ~30fps, 4px step) ===
+    // === WALK (single timer: uses variant params) ===
     Timer {
         interval: 33; running: win.catState === "walking"; repeat: true
         onTriggered: {
-            var nx = win.x + (win.facingRight ? 4 : -4);
+            var nx = win.x + (win.facingRight ? win.walkStepPx : -win.walkStepPx);
             if (nx > win.screenW - win.width - 10) win.facingRight = false;
             else if (nx < 10) win.facingRight = true;
             win.x = nx;
+            // Y-axis bobbing during walk
+            win.y = win.restY - Math.abs(Math.sin(win.walkFrameCounter * 0.15)) * 3;
             win.walkFrameCounter++;
-            if (win.walkFrameCounter % 5 === 0) win.walkFrame = (win.walkFrame + 1) % 4;
+            if (win.walkFrameCounter % win.walkFrameMod === 0) win.walkFrame = (win.walkFrame + 1) % win.walkFrameCount;
         }
     }
 
     // === TAIL SWISH ===
-    Timer { interval: 300; running: win.catState === "tail_swish"; repeat: true; onTriggered: win.tailSwishFrame = (win.tailSwishFrame + 1) % 4 }
+    Timer { interval: win.tailSwishMs; running: win.catState === "tail_swish"; repeat: true; onTriggered: win.tailSwishFrame = (win.tailSwishFrame + 1) % win.tailSwishFrameCount }
     Timer { id: tailSwishDuration; interval: 3600; onTriggered: { win.catState = "idle"; } }
 
     // === STRETCH ===
@@ -613,7 +622,7 @@ Window {
         repeat: true
         onTriggered: {
             if (bubble.visible) return;
-            if (win.catState === "walking") { win.catState = "idle"; interval = 2000 + Math.random() * 2000; }
+            if (win.catState === "walking") { win.catState = "idle"; win.y = win.restY; interval = 2000 + Math.random() * 2000; }
             else if (win.catState === "idle") {
                 var roll = Math.random();
                 if (roll < 0.5) {

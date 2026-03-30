@@ -35,8 +35,10 @@ Tests run automatically via CTest as part of the build (`cmake --build build --c
 ctest --test-dir build --output-on-failure -C Release
 ```
 
-- `test-chat-dedup` — Unit tests for chat dedup guard logic (QML + server)
-- `test-qml-structure` — Structural tests for QML component properties (selectability, animation settings)
+- `test-chat-dedup` — Node.js unit tests for chat dedup guard logic (QML + server)
+- `test-qt-quick` — Qt Quick Test suite (component properties, animation A/B variant, SVG assets)
+
+Qt Quick Tests are in `tests/tst_*.qml` using `TestCase` elements. The test executable runs with `QT_QPA_PLATFORM=offscreen` so no display is needed.
 
 ## Architecture
 

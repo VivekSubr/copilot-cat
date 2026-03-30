@@ -8,17 +8,18 @@ WHITE = '#cdd6f4'
 PINK = '#f5c2e7'
 NOSE = '#f38ba8'
 
-def walk_svg(frame, eye='blue'):
+def walk_svg(frame, eye='blue', cycles=None):
     """eye: 'blue' for walking right, 'amber' for walking left"""
     iris = '#89b4fa' if eye == 'blue' else '#fab387'
     iris_dark = '#5e8ad4' if eye == 'blue' else '#e8956a'
     # Moderate stride - legs stay connected to body
-    cycles = {
-        0: {'fl': (10, -6),  'fr': (-8, 0),   'bl': (-8, 0),   'br': (10, -6)},
-        1: {'fl': (2, -2),   'fr': (2, -2),   'bl': (2, -2),   'br': (2, -2)},
-        2: {'fl': (-8, 0),   'fr': (10, -6),  'bl': (10, -6),  'br': (-8, 0)},
-        3: {'fl': (2, -2),   'fr': (2, -2),   'bl': (2, -2),   'br': (2, -2)},
-    }
+    if cycles is None:
+        cycles = {
+            0: {'fl': (10, -6),  'fr': (-8, 0),   'bl': (-8, 0),   'br': (10, -6)},
+            1: {'fl': (2, -2),   'fr': (2, -2),   'bl': (2, -2),   'br': (2, -2)},
+            2: {'fl': (-8, 0),   'fr': (10, -6),  'bl': (10, -6),  'br': (-8, 0)},
+            3: {'fl': (2, -2),   'fr': (2, -2),   'bl': (2, -2),   'br': (2, -2)},
+        }
     c = cycles[frame]
 
     def leg(bx, by, dx, dy):
@@ -118,4 +119,41 @@ for i in range(4):
     path_l = rf'C:\Software\copilot-cat\assets\{name_l}.svg'
     with open(path_l, 'w', encoding='ascii') as f:
         f.write(walk_svg(i, 'amber'))
+    print(f'{name_l}: {os.path.getsize(path_l)} bytes')
+
+# --- Variant B: 8-frame walk cycle (interpolated from 4 keyframes) ---
+
+base = {
+    0: {'fl': (10, -6),  'fr': (-8, 0),   'bl': (-8, 0),   'br': (10, -6)},
+    1: {'fl': (2, -2),   'fr': (2, -2),   'bl': (2, -2),   'br': (2, -2)},
+    2: {'fl': (-8, 0),   'fr': (10, -6),  'bl': (10, -6),  'br': (-8, 0)},
+    3: {'fl': (2, -2),   'fr': (2, -2),   'bl': (2, -2),   'br': (2, -2)},
+}
+
+def midpoint(a, b):
+    """Halfway interpolation between two leg-offset dicts."""
+    return {k: ((a[k][0] + b[k][0]) // 2, (a[k][1] + b[k][1]) // 2) for k in a}
+
+cycles_b = {
+    0: base[0],
+    1: midpoint(base[0], base[1]),
+    2: base[1],
+    3: midpoint(base[1], base[2]),
+    4: base[2],
+    5: midpoint(base[2], base[3]),
+    6: base[3],
+    7: midpoint(base[3], base[0]),
+}
+
+for i in range(8):
+    name = f'cat_walk_b{i+1}'
+    path = rf'C:\Software\copilot-cat\assets\{name}.svg'
+    with open(path, 'w', encoding='ascii') as f:
+        f.write(walk_svg(i, 'blue', cycles_b))
+    print(f'{name}: {os.path.getsize(path)} bytes')
+
+    name_l = f'cat_walk_b{i+1}_left'
+    path_l = rf'C:\Software\copilot-cat\assets\{name_l}.svg'
+    with open(path_l, 'w', encoding='ascii') as f:
+        f.write(walk_svg(i, 'amber', cycles_b))
     print(f'{name_l}: {os.path.getsize(path_l)} bytes')

@@ -1,0 +1,102 @@
+<svg viewBox="0 0 210 225" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(5, 87)">
+  <!-- Tail - fills into body area so body hides seam -->
+  <path d="M 42,72 C 32,62 18,46 12,32 C 6,18 10,8 16,4 C 22,0 28,4 26,12
+           C 24,20 22,32 26,46 C 30,58 38,68 44,74" fill="#7f849c" stroke="#45475a" stroke-width="2"/>
+  <path d="M 16,4 C 22,0 28,4 26,12 C 24,6 20,2 16,4Z" fill="#cdd6f4"/>
+
+  <!-- Back legs -->
+  <path d="M 43,93 C 41,101 39,107 41,117
+           C 43,121 49,123 53,121
+           C 55,119 55,113 53,109
+           C 51,103 49,99 47,93" fill="#7f849c"/>
+    <path d="M 43,111 C 41,117 43,121 47,123
+           C 51,124 55,121 55,115" fill="none" stroke="#45475a" stroke-width="1.6"/>
+    <ellipse cx="48" cy="121" rx="8" ry="4" fill="#6c7086" stroke="#45475a" stroke-width="1.4"/>
+    <circle cx="44" cy="122" r="2" fill="#f5c2e7" opacity="0.8"/>
+    <circle cx="48" cy="123" r="1.6" fill="#f5c2e7" opacity="0.8"/>
+    <circle cx="52" cy="122" r="2" fill="#f5c2e7" opacity="0.8"/>
+  <path d="M 66,90 C 64,98 62,104 64,114
+           C 66,118 72,120 76,118
+           C 78,116 78,110 76,106
+           C 74,100 72,96 70,90" fill="#7f849c"/>
+    <path d="M 66,108 C 64,114 66,118 70,120
+           C 74,121 78,118 78,112" fill="none" stroke="#45475a" stroke-width="1.6"/>
+    <ellipse cx="71" cy="118" rx="8" ry="4" fill="#6c7086" stroke="#45475a" stroke-width="1.4"/>
+    <circle cx="67" cy="119" r="2" fill="#f5c2e7" opacity="0.8"/>
+    <circle cx="71" cy="120" r="1.6" fill="#f5c2e7" opacity="0.8"/>
+    <circle cx="75" cy="119" r="2" fill="#f5c2e7" opacity="0.8"/>
+
+  <!-- Body oval -->
+  <ellipse cx="72" cy="84" rx="40" ry="22" fill="#7f849c" stroke="#45475a" stroke-width="2.2"/>
+  <ellipse cx="72" cy="88" rx="28" ry="12" fill="#bac2de"/>
+
+  <!-- Front legs -->
+  <path d="M 84,88 C 82,96 80,102 82,112
+           C 84,116 90,118 94,116
+           C 96,114 96,108 94,104
+           C 92,98 90,94 88,88" fill="#7f849c"/>
+    <path d="M 84,106 C 82,112 84,116 88,118
+           C 92,119 96,116 96,110" fill="none" stroke="#45475a" stroke-width="1.6"/>
+    <ellipse cx="89" cy="116" rx="8" ry="4" fill="#6c7086" stroke="#45475a" stroke-width="1.4"/>
+    <circle cx="85" cy="117" r="2" fill="#f5c2e7" opacity="0.8"/>
+    <circle cx="89" cy="118" r="1.6" fill="#f5c2e7" opacity="0.8"/>
+    <circle cx="93" cy="117" r="2" fill="#f5c2e7" opacity="0.8"/>
+  <path d="M 91,91 C 89,99 87,105 89,115
+           C 91,119 97,121 101,119
+           C 103,117 103,111 101,107
+           C 99,101 97,97 95,91" fill="#7f849c"/>
+    <path d="M 91,109 C 89,115 91,119 95,121
+           C 99,122 103,119 103,113" fill="none" stroke="#45475a" stroke-width="1.6"/>
+    <ellipse cx="96" cy="119" rx="8" ry="4" fill="#6c7086" stroke="#45475a" stroke-width="1.4"/>
+    <circle cx="92" cy="120" r="2" fill="#f5c2e7" opacity="0.8"/>
+    <circle cx="96" cy="121" r="1.6" fill="#f5c2e7" opacity="0.8"/>
+    <circle cx="100" cy="120" r="2" fill="#f5c2e7" opacity="0.8"/>
+
+  <!-- Neck fill - same color as body, covers the gap -->
+  <path d="M 98,76 C 104,68 112,60 120,56 C 128,52 132,56 128,64
+           C 124,72 116,78 108,82 C 102,86 98,84 98,76Z" fill="#7f849c"/>
+
+  <!-- Far ear (behind head, slightly visible) -->
+  <path d="M 132,26 Q 128,10 134,4 Q 140,12 140,24 Z" fill="#6c7086" stroke="#45475a" stroke-width="1.5"/>
+
+  <!-- Near ear (big, like idle) -->
+  <path d="M 152,28 Q 164,4 156,-2 Q 146,10 144,26 Z" fill="#7f849c" stroke="#45475a" stroke-width="2"/>
+  <path d="M 150,24 Q 158,8 154,2 Q 148,12 146,22 Z" fill="white"/>
+
+  <!-- Head - big chibi circle, overlaps neck -->
+  <ellipse cx="148" cy="46" rx="36" ry="34" fill="#7f849c" stroke="#45475a" stroke-width="2.5"/>
+
+  <!-- Muzzle -->
+  <ellipse cx="168" cy="58" rx="14" ry="10" fill="#cdd6f4"/>
+
+  <!-- Heart -->
+  <path d="M 148,28 C 146,24 141,24 141,28 C 141,32 148,36 148,36
+           C 148,36 155,32 155,28 C 155,24 150,24 148,28Z" fill="#cdd6f4"/>
+
+  <!-- Eye -->
+  <ellipse cx="160" cy="46" rx="12" ry="14" fill="white" stroke="#45475a" stroke-width="2"/>
+  <ellipse cx="161" cy="48" rx="10" ry="12" fill="#89b4fa"/>
+  <ellipse cx="161" cy="45" rx="8" ry="5" fill="#5e8ad4" opacity="0.4"/>
+  <ellipse cx="162" cy="50" rx="5" ry="7" fill="#1e1e2e"/>
+  <circle cx="166" cy="42" r="3.5" fill="white"/>
+  <circle cx="158" cy="54" r="2" fill="white" opacity="0.8"/>
+  <circle cx="166" cy="51" r="1.2" fill="white" opacity="0.5"/>
+
+  <!-- Nose -->
+  <path d="M 176,56 C 174,56 173,58 174,59 C 175,60 176,60 176,60
+           C 176,60 177,60 178,59 C 179,58 178,56 176,56Z" fill="#f38ba8" stroke="#d4637a" stroke-width="0.5"/>
+
+  <!-- Mouth -->
+  <path d="M 176,60 L 176,61.5" stroke="#45475a" stroke-width="0.8" stroke-linecap="round"/>
+  <path d="M 174,61 C 174.5,62.5 175.5,61.5 176,61.5" stroke="#45475a" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+  <path d="M 176,61.5 C 176.5,61.5 177.5,62.5 178,61" stroke="#45475a" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+
+  <!-- Whiskers -->
+  <g stroke="#6c7086" stroke-width="0.7" fill="none" opacity="0.5">
+    <path d="M 180,58 Q 190,55 198,54"/>
+    <path d="M 180,60 Q 192,60 200,60"/>
+    <path d="M 180,62 Q 190,65 198,68"/>
+  </g>
+  </g>
+</svg>
