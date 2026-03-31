@@ -1,6 +1,9 @@
 #include "copilotbridge.h"
+#include "catconfig.h"
 #include <QCoreApplication>
 #include <QDir>
+#include <QFile>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkReply>
@@ -14,36 +17,9 @@ static const char *SYSTEM_PROMPT =
     "Keep responses short (1-3 sentences). Be friendly, occasionally use cat puns. "
     "You help with coding questions, general knowledge, and chat.";
 
-CopilotBridge::CopilotBridge(QObject *parent)
-    : QObject(parent)
+CopilotBridge::CopilotBridge(CatConfig *config, QObject *parent)
+    : QObject(parent), m_config(config)
 {
-    m_openRouterKey = qEnvironmentVariable("OPENROUTER_API_KEY", "");
-    m_openRouterModel = qEnvironmentVariable("OPENROUTER_MODEL", "openai/gpt-4o-mini");
-    m_openRouterBaseUrl = qEnvironmentVariable("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1");
-    m_processCommand = qEnvironmentVariable("COPILOT_CAT_CMD", "");
-}
-
-void CopilotBridge::setBackend(const QString &backend)
-{
-    if (m_backend != backend) {
-        m_backend = backend;
-        emit backendChanged();
-    }
-}
-
-void CopilotBridge::loadConfig(const QJsonObject &config)
-{
-    // Config JSON values override env vars; env vars remain as defaults
-    if (config.contains("backend"))
-        setBackend(config["backend"].toString());
-    if (config.contains("openrouter_api_key"))
-        m_openRouterKey = config["openrouter_api_key"].toString();
-    if (config.contains("openrouter_model"))
-        m_openRouterModel = config["openrouter_model"].toString();
-    if (config.contains("openrouter_base_url"))
-        m_openRouterBaseUrl = config["openrouter_base_url"].toString();
-    if (config.contains("command"))
-        m_processCommand = config["command"].toString();
 }
 
 void CopilotBridge::sendMessage(const QString &message)
@@ -53,24 +29,25 @@ void CopilotBridge::sendMessage(const QString &message)
 
     setBusy(true);
 
-    // "mcp" backend is handled in QML via WebSocket, not here
-    if (m_backend == "openrouter") {
-        if (!m_openRouterKey.isEmpty()) { sendViaOpenRouter(message); return; }
+    QString backend = m_config->backend();
+
+    if (backend == "openrouter") {
+        if (!m_config->openRouterKey().isEmpty()) { sendViaOpenRouter(message); return; }
         emit errorOccurred("OPENROUTER_API_KEY not set.");
         setBusy(false);
         return;
     }
-    if (m_backend == "command") {
-        if (!m_processCommand.isEmpty()) { sendViaProcess(message); return; }
+    if (backend == "command") {
+        if (!m_config->processCommand().isEmpty()) { sendViaProcess(message); return; }
         emit errorOccurred("COPILOT_CAT_CMD not set.");
         setBusy(false);
         return;
     }
 
     // "auto" — try in priority order
-    if (!m_openRouterKey.isEmpty())
+    if (!m_config->openRouterKey().isEmpty())
         sendViaOpenRouter(message);
-    else if (!m_processCommand.isEmpty())
+    else if (!m_config->processCommand().isEmpty())
         sendViaProcess(message);
     else
         sendFallback(message);
@@ -78,18 +55,14 @@ void CopilotBridge::sendMessage(const QString &message)
 
 void CopilotBridge::sendViaOpenRouter(const QString &message)
 {
-    // Add user message to history
     QJsonObject userMsg;
     userMsg["role"] = "user";
     userMsg["content"] = message;
     m_chatHistory.append(userMsg);
 
-    // Trim history to last 20 messages
     while (m_chatHistory.size() > 20)
         m_chatHistory.removeFirst();
 
-    // Build messages array with system prompt as first user message
-    // (some models like Gemma don't support the "system" role)
     QJsonArray messages;
     QJsonObject sysMsg;
     sysMsg["role"] = "user";
@@ -97,19 +70,19 @@ void CopilotBridge::sendViaOpenRouter(const QString &message)
     messages.append(sysMsg);
     QJsonObject ack;
     ack["role"] = "assistant";
-    ack["content"] = QString("Understood! I'm Copilot Cat, ready to help! 😺");
+    ack["content"] = QString("Understood! I'm Copilot Cat, ready to help!");
     messages.append(ack);
     for (const auto &msg : m_chatHistory)
         messages.append(msg);
 
     QJsonObject body;
-    body["model"] = m_openRouterModel;
+    body["model"] = m_config->openRouterModel();
     body["messages"] = messages;
     body["max_tokens"] = 200;
 
-    QNetworkRequest req(QUrl(m_openRouterBaseUrl + "/chat/completions"));
+    QNetworkRequest req(QUrl(m_config->openRouterBaseUrl() + "/chat/completions"));
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    req.setRawHeader("Authorization", ("Bearer " + m_openRouterKey).toUtf8());
+    req.setRawHeader("Authorization", ("Bearer " + m_config->openRouterKey()).toUtf8());
     req.setRawHeader("HTTP-Referer", "https://github.com/copilot-cat");
     req.setRawHeader("X-Title", "Copilot Cat");
 
@@ -139,7 +112,6 @@ void CopilotBridge::sendViaOpenRouter(const QString &message)
             return;
         }
 
-        // Add assistant reply to history
         QJsonObject assistantMsg;
         assistantMsg["role"] = "assistant";
         assistantMsg["content"] = text;
@@ -163,15 +135,12 @@ void CopilotBridge::sendViaProcess(const QString &message)
     connect(m_process, &QProcess::finished, this,
         [this](int exitCode, QProcess::ExitStatus status) {
             QString output = QString::fromUtf8(m_process->readAllStandardOutput()).trimmed();
-
-            if (status == QProcess::NormalExit && exitCode == 0 && !output.isEmpty()) {
+            if (status == QProcess::NormalExit && exitCode == 0 && !output.isEmpty())
                 emit responseReceived(output);
-            } else if (output.isEmpty()) {
+            else if (output.isEmpty())
                 emit errorOccurred("No response received.");
-            } else {
+            else
                 emit responseReceived(output);
-            }
-
             setBusy(false);
         });
 
@@ -182,7 +151,7 @@ void CopilotBridge::sendViaProcess(const QString &message)
             setBusy(false);
         });
 
-    QString expandedCommand = m_processCommand;
+    QString expandedCommand = m_config->processCommand();
     expandedCommand.replace("%MSG%", message);
 
 #ifdef Q_OS_WIN

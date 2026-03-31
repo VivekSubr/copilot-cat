@@ -516,8 +516,41 @@ def make_tail_swish_b(frame):
   {whiskers(cx, 126)}
 </svg>'''
 
-# Generate all
-for name, gen in [('cat_idle', make_idle), ('cat_sit', make_sit), ('cat_stretch', make_stretch), ('cat_jump', make_jump)]:
+def make_peek():
+    '''Cat peeking from behind something - only head, ears, and paws visible.
+    Head pokes out from the left side, two paws grip the edge.'''
+    cx = 105
+    return f'''<svg viewBox="0 0 210 225" xmlns="http://www.w3.org/2000/svg">
+  <!-- Two paws gripping the left edge -->
+  <ellipse cx="56" cy="148" rx="11" ry="5.5" fill="{C['dark']}" stroke="{OL}" stroke-width="1.5" transform="rotate(-80, 56, 148)"/>
+  <circle cx="52" cy="143" r="2.5" fill="{C['pink']}" opacity="0.8"/>
+  <circle cx="54" cy="148" r="2" fill="{C['pink']}" opacity="0.8"/>
+  <circle cx="52" cy="153" r="2.5" fill="{C['pink']}" opacity="0.8"/>
+
+  <ellipse cx="56" cy="182" rx="11" ry="5.5" fill="{C['dark']}" stroke="{OL}" stroke-width="1.5" transform="rotate(-80, 56, 182)"/>
+  <circle cx="52" cy="177" r="2.5" fill="{C['pink']}" opacity="0.8"/>
+  <circle cx="54" cy="182" r="2" fill="{C['pink']}" opacity="0.8"/>
+  <circle cx="52" cy="187" r="2.5" fill="{C['pink']}" opacity="0.8"/>
+
+  <!-- Body half (only right half visible, as if behind a wall) -->
+  <path d="M 60,198 C 73,202 132,202 145,198 C 153,192 155,182 155,170 C 155,160 156,148 158,132 C 162,115 164,100 156,80 Q 176,38 162,18 Q 146,34 130,58 C 120,50 90,50 80,58 Q 64,34 48,18 Q 34,38 54,80 C 46,100 48,115 52,132 C 56,148 55,160 55,170 C 55,182 57,192 60,198 Z" fill="{C['body']}" stroke="{OL}" stroke-width="2.5" stroke-linejoin="round"/>
+
+  <!-- Ear inners -->
+  <path d="M 58,76 Q 44,44 52,26 Q 62,40 74,62 Z" fill="white"/>
+  <path d="M 152,76 Q 166,44 158,26 Q 148,40 136,62 Z" fill="white"/>
+
+  <!-- Face -->
+  <ellipse cx="{cx}" cy="120" rx="24" ry="15" fill="{C['white']}"/>
+  {heart(cx, 77)}
+  <!-- Wide curious eyes -->
+  {eye(cx-23, 97, 17, 19, C['eyeAmber'], C['eyeAmberDark'])}
+  {eye(cx+23, 97, 17, 19, C['eyeBlue'], C['eyeBlueDark'])}
+  {nose_mouth(cx, 122)}
+  {whiskers(cx, 126)}
+</svg>'''
+
+
+for name, gen in [('cat_idle', make_idle), ('cat_sit', make_sit), ('cat_stretch', make_stretch), ('cat_jump', make_jump), ('cat_peek', make_peek)]:
     path = rf'C:\Software\copilot-cat\assets\{name}.svg'
     with open(path, 'w') as f:
         f.write(gen())

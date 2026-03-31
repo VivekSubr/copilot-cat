@@ -73,7 +73,7 @@ TestCase {
     // --- Static pose SVGs ---
 
     function test_static_poses_exist() {
-        var poses = ["cat_idle", "cat_sit", "cat_stretch", "cat_jump", "cat_pounce", "cat_land"]
+        var poses = ["cat_idle", "cat_sit", "cat_stretch", "cat_jump", "cat_pounce", "cat_land", "cat_peek"]
         for (var p = 0; p < poses.length; p++) {
             var img = Qt.createQmlObject(
                 'import QtQuick; Image { source: "file:///' + base + poses[p] + '.svg" }', tc)

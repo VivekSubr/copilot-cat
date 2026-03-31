@@ -17,9 +17,16 @@ npx tsc
 node dist/server.js  # runs on stdio, connects to cat via WebSocket
 ```
 
-### Cat UI (compiled C++ exe)
+### Cat UI (compiled C++ exe — static, single file)
 ```powershell
-cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2022_64
+cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2022_64_static -DQT_STATIC=ON
+cmake --build build --config Release
+```
+Produces a single exe with Qt linked statically. Requires a static Qt build.
+
+### Cat UI (dynamic linking — needs Qt DLLs)
+```powershell
+cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2022_64 -DQT_STATIC=OFF
 cmake --build build --config Release
 ```
 
@@ -35,8 +42,7 @@ Tests run automatically via CTest as part of the build (`cmake --build build --c
 ctest --test-dir build --output-on-failure -C Release
 ```
 
-- `test-chat-dedup` — Node.js unit tests for chat dedup guard logic (QML + server)
-- `test-qt-quick` — Qt Quick Test suite (component properties, animation A/B variant, SVG assets)
+- `test-qt-quick` — Qt Quick Test suite (chat dedup guards, component properties, animation params, SVG assets)
 
 Qt Quick Tests are in `tests/tst_*.qml` using `TestCase` elements. The test executable runs with `QT_QPA_PLATFORM=offscreen` so no display is needed.
 
@@ -74,6 +80,37 @@ Desktop pet cat that serves as a visual interface for GitHub Copilot via MCP. Th
 
 ### Cat Animation States (Debug.qml)
 `pounce` → `land` → `sit` → `idle` (cycles between walking and sitting via random behavior timer). Walking uses a 4-frame sprite cycle at 180ms/frame, moving 2px/tick at 60 FPS, reversing at screen edges.
+
+## Packaging
+
+### MSIX (Microsoft Store)
+
+Build an MSIX package from a static or dynamic build:
+
+```powershell
+# Static build (default)
+make msix CONFIG=Release
+
+# Or run the script directly with a custom build dir
+pkg\make_msix.cmd build-dynamic\Release
+```
+
+**Local testing (sideload):**
+1. Enable Developer Mode in Windows Settings > For developers
+2. Sign with a test certificate: `pkg\make_msix.cmd build\Release /sign`
+3. Install the test cert: double-click `pkg\test-cert.pfx`, install to Local Machine > Trusted People
+4. Double-click `pkg\copilot-cat.msix` to install
+
+**Microsoft Store submission:**
+1. Reserve an app name in [Partner Center](https://partner.microsoft.com/dashboard)
+2. Update `pkg/AppxManifest.xml` with your publisher identity and reserved app name
+3. Replace placeholder icons in `pkg/Assets/` with real artwork (run `python pkg/gen_icons.py` to regenerate placeholders)
+4. Rebuild: `pkg\make_msix.cmd build\Release`
+5. Upload `pkg/copilot-cat.msix` to Partner Center -- Microsoft signs it during certification
+
+### Other formats
+
+See `pkg/README.md` for MSI (WiX), Chocolatey, RPM, and DEB packaging.
 
 ## Conventions
 

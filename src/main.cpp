@@ -13,6 +13,7 @@
 #include <QMutex>
 #include <cstdio>
 #include <cstring>
+#include "catconfig.h"
 #include "copilotbridge.h"
 
 static QFile *g_logFile = nullptr;
@@ -137,27 +138,40 @@ int main(int argc, char *argv[])
     app.setApplicationName("Copilot Cat");
     app.setOrganizationName("CopilotCat");
 
-    CopilotBridge bridge;
+    CatConfig config;
+    CopilotBridge bridge(&config);
 
     // Load config: explicit --config, or auto-detect copilot-cat.json next to exe
+    bool configLoaded = false;
     if (configPath) {
-        QJsonObject config = loadJsonFile(QString::fromUtf8(configPath));
-        if (!config.isEmpty())
-            bridge.loadConfig(config);
+        QJsonObject cfg = loadJsonFile(QString::fromUtf8(configPath));
+        if (!cfg.isEmpty()) {
+            config.loadConfig(cfg);
+            configLoaded = true;
+        }
+        config.setConfigPath(QString::fromUtf8(configPath));
     } else {
         QString autoConfig = QCoreApplication::applicationDirPath() + "/copilot-cat.json";
+        config.setConfigPath(autoConfig);
         if (QFileInfo::exists(autoConfig)) {
-            QJsonObject config = loadJsonFile(autoConfig);
-            if (!config.isEmpty())
-                bridge.loadConfig(config);
+            QJsonObject cfg = loadJsonFile(autoConfig);
+            if (!cfg.isEmpty()) {
+                config.loadConfig(cfg);
+                configLoaded = true;
+            }
         }
     }
 
+    // If no config was loaded, trigger first-run setup wizard
+    if (!configLoaded)
+        config.setNeedsSetup(true);
+
     // CLI --backend overrides config file
     if (backend)
-        bridge.setBackend(QString::fromUtf8(backend));
+        config.setBackend(QString::fromUtf8(backend));
 
     QQmlApplicationEngine engine;
+    engine.rootContext()->setContextProperty("catConfig", &config);
     engine.rootContext()->setContextProperty("copilotBridge", &bridge);
 
     const QUrl url(u"qrc:/CopilotCat/qml/Main.qml"_qs);

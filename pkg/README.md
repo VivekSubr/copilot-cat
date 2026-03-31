@@ -8,6 +8,7 @@ This directory contains packaging configurations for distributing Copilot Cat.
 | Chocolatey | `chocolatey/` | Windows | [choco](https://chocolatey.org/) |
 | RPM | `rpm/` | Fedora/RHEL | rpmbuild |
 | DEB | `deb/` | Debian/Ubuntu | dpkg-deb |
+| MSIX (Store) | `./` (root of pkg/) | Windows | [MakeAppx](https://learn.microsoft.com/en-us/windows/msix/) |
 
 ## Prerequisites
 
@@ -47,3 +48,20 @@ rpmbuild -bb pkg/rpm/copilot-cat.spec --define "_topdir $(pwd)/rpmbuild"
 ```bash
 dpkg-deb --build pkg/deb/copilot-cat
 ```
+
+### MSIX (Microsoft Store)
+```powershell
+# Generate placeholder icons (requires Pillow, or falls back to raw PNGs)
+pip install Pillow
+python pkg/gen_icons.py
+
+# Build MSIX from static build
+pkg\make_msix.cmd build\Release
+
+# Build and sign with test certificate for local sideloading
+pkg\make_msix.cmd build\Release /sign
+```
+
+Before submitting to the Store, update `AppxManifest.xml` with your
+publisher identity from Partner Center and replace the placeholder icons.
+See comments in `AppxManifest.xml` for details.

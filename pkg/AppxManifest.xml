@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MSIX Package Manifest for Copilot Cat
+  ======================================
+
+  Before submitting to the Microsoft Store via Partner Center:
+
+  1. Identity: Replace "CN=PLACEHOLDER" with your real publisher identity
+     from Partner Center (e.g. "CN=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX").
+     Update Name to match the one reserved in Partner Center.
+
+  2. Publisher display name: Replace "Copilot Cat Developer" with your
+     registered publisher display name.
+
+  3. Version: Bump the Version attribute on each submission. The Store
+     requires the fourth digit to be 0 (e.g. 1.0.1.0, not 1.0.1.1).
+
+  4. Assets: Replace placeholder PNGs in Assets/ with real artwork.
+     See https://learn.microsoft.com/en-us/windows/apps/design/style/iconography/app-icon-construction
+
+  5. Capabilities: internetClient is required for OpenRouter API calls.
+     privateNetworkClientServer is needed for local WebSocket communication
+     with the MCP server during development.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap mp rescap">
+
+  <!--
+    Identity: Name must match the name reserved in Partner Center.
+    Publisher must match the publisher identity from Partner Center.
+    ProcessorArchitecture: x64 for the MSVC 2022 build.
+  -->
+  <Identity
+    Name="CopilotCat"
+    Publisher="CN=PLACEHOLDER"
+    Version="1.0.0.0"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>Copilot Cat</DisplayName>
+    <!-- Replace with your registered publisher display name -->
+    <PublisherDisplayName>Copilot Cat Developer</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <Description>A playful desktop pet AI assistant powered by GitHub Copilot</Description>
+  </Properties>
+
+  <Dependencies>
+    <!--
+      MinVersion 10.0.17763.0 = Windows 10 1809 (October 2018 Update).
+      This is the minimum for MSIX support and modern UWP APIs.
+      MaxVersionTested should be updated to the latest tested SDK version.
+    -->
+    <TargetDeviceFamily
+      Name="Windows.Desktop"
+      MinVersion="10.0.17763.0"
+      MaxVersionTested="10.0.22621.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+
+  <Applications>
+    <!--
+      Entry point for Win32 desktop apps packaged as MSIX.
+      Executable path is relative to the package root.
+    -->
+    <Application
+      Id="CopilotCat"
+      Executable="copilot-cat.exe"
+      EntryPoint="Windows.FullTrustApplication">
+
+      <uap:VisualElements
+        DisplayName="Copilot Cat"
+        Description="A playful desktop pet AI assistant powered by GitHub Copilot"
+        BackgroundColor="#313244"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png">
+
+        <uap:DefaultTile
+          Wide310x150Logo="Assets\Wide310x150Logo.png"
+          Square310x310Logo="Assets\Square310x310Logo.png"
+          ShortName="Copilot Cat" />
+
+        <uap:SplashScreen
+          Image="Assets\Wide310x150Logo.png"
+          BackgroundColor="#313244" />
+
+      </uap:VisualElements>
+
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <!-- Required for OpenRouter API calls over HTTPS -->
+    <Capability Name="internetClient" />
+    <!-- Required for local WebSocket communication with MCP server -->
+    <Capability Name="privateNetworkClientServer" />
+  </Capabilities>
+
+</Package>

@@ -63,7 +63,7 @@ Window {
     WebSocket {
         id: ws
         url: "ws://127.0.0.1:9922"
-        active: copilotBridge.backend === "auto" || copilotBridge.backend === "mcp"
+        active: catConfig.backend === "auto" || catConfig.backend === "mcp"
         onStatusChanged: function(status) {
             if (status === WebSocket.Open) {
                 win.wsConnected = true;
@@ -136,12 +136,12 @@ Window {
     // === COPILOT BRIDGE (fallback when MCP not connected) ===
     Connections {
         target: copilotBridge
-        function onResponseReceived(response) { showBubble(response, win.chatMode); }
-        function onErrorOccurred(error) { showBubble("Meow! " + error, win.chatMode); }
+        function onResponseReceived(response) { if (!setupWizard.visible) showBubble(response, win.chatMode); }
+        function onErrorOccurred(error) { if (!setupWizard.visible) showBubble("Meow! " + error, win.chatMode); }
     }
 
     function sendChat(msg) {
-        var b = copilotBridge.backend;
+        var b = catConfig.backend;
         console.log("[DEDUP] sendChat: backend=" + b + " wsConnected=" + win.wsConnected + " chatMode=" + win.chatMode);
         // "mcp" forces WebSocket; "auto" prefers WebSocket when connected
         if (b === "mcp" || (b === "auto" && win.wsConnected)) {
@@ -364,11 +364,11 @@ Window {
 
     Timer { id: autoDismiss; interval: 6000; onTriggered: hideBubble() }
 
-    // === CAT SPRITE (right side when bubble visible, centered otherwise) ===
+    // === CAT SPRITE (right side when bubble/wizard visible, centered otherwise) ===
     Item {
         id: sprite
-        width: bubble.visible ? win.catSpriteWidth : 200
-        height: bubble.visible ? 140 : 180
+        width: (bubble.visible || setupWizard.visible) ? win.catSpriteWidth : 200
+        height: (bubble.visible || setupWizard.visible) ? 140 : 180
         anchors.bottom: parent.bottom
         anchors.right: parent.right
 
@@ -383,6 +383,7 @@ Window {
                 if (win.catState === "pounce") return "file:///C:/Software/copilot-cat/assets/cat_pounce.svg";
                 if (win.catState === "land") return "file:///C:/Software/copilot-cat/assets/cat_land.svg";
                 if (win.catState === "sit") return "file:///C:/Software/copilot-cat/assets/cat_sit.svg";
+                if (win.catState === "peek") return "file:///C:/Software/copilot-cat/assets/cat_peek.svg";
                 if (win.catState === "stretch") return "file:///C:/Software/copilot-cat/assets/cat_stretch.svg";
                 if (win.catState === "jump") return "file:///C:/Software/copilot-cat/assets/cat_jump.svg";
                 if (win.catState === "tail_swish") {
@@ -494,13 +495,16 @@ Window {
                         win.suppressClick = false;
                         return;
                     }
+                    if (setupWizard.visible) return;
                     if (win.catState === "pounce" || win.catState === "land") return;
                     if (bubble.visible) {
                         if (!win.bubbleIsInput) {
-                            win.chatMode = false;
                             hideBubble();
-                            win.catState = "idle";
-                            behaviorTimer.start();
+                            // Go straight to chat instead of requiring extra clicks
+                            win.chatMode = true;
+                            win.chatReplyPending = false;
+                            win.chatReplyReceived = false;
+                            showBubble("What's on your mind?", true);
                         }
                         return;
                     }
@@ -576,7 +580,7 @@ Window {
     // === POUNCE ===
     SequentialAnimation {
         id: introAnimation
-        running: true
+        running: !catConfig.needsSetup
         ParallelAnimation {
             NumberAnimation { target: win; property: "x"; from: -win.width; to: win.screenW / 4; duration: 700; easing.type: Easing.OutCubic }
             SequentialAnimation {
@@ -591,6 +595,40 @@ Window {
         ScriptAction { script: showBubble(win.wsConnected ? "Hi! I'm Copilot Cat! Click me to chat!" : "Hi! Click me to chat! (MCP server not connected)", false) }
         PauseAnimation { duration: 4000 }
         ScriptAction { script: { hideBubble(); win.catState = "idle"; behaviorTimer.start(); } }
+    }
+
+    // === SETUP WIZARD ===
+    SetupWizard {
+        id: setupWizard
+        x: 10
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 20
+        width: win.bubbleWidth - 20
+        height: 220
+        z: 1
+        onSetupComplete: {
+            setupWizard.visible = false;
+            win.width = win.compactWidth;
+            win.height = win.compactHeight;
+            win.y = win.restY;
+            win.catState = "idle";
+            behaviorTimer.start();
+            showBubble("Purrfect! I'm all set up! Click me to chat!", false);
+        }
+    }
+
+    // Setup wizard initialization — runs once at startup before anything else
+    Component.onCompleted: {
+        if (catConfig.needsSetup) {
+            win.catState = "peek";
+            win.facingRight = true;
+            win.width = win.compactWidth + win.bubbleWidth + win.bubblePadding;
+            win.height = 300;
+            win.x = (win.screenW - win.width) / 2;
+            win.y = win.catBottom - win.height;
+            bubble.visible = false;
+            setupWizard.start();
+        }
     }
 
     // === WALK (single timer: uses variant params) ===
