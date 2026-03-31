@@ -30,6 +30,7 @@ signals:
 private:
     void setBusy(bool busy);
     void sendViaOpenRouter(const QString &message);
+    void sendViaCopilot(const QString &message);
     void sendViaProcess(const QString &message);
     void sendFallback(const QString &message);
 

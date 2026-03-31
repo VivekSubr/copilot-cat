@@ -97,6 +97,7 @@ target_link_libraries(copilot-cat-config-tests PRIVATE
     Qt6::Test
     Qt6::Network
     Qt6::Core
+    Qt6::Gui
 )
 target_compile_definitions(copilot-cat-config-tests PRIVATE
     SOURCE_DIR="${CMAKE_SOURCE_DIR}"
@@ -119,6 +120,7 @@ target_link_libraries(copilot-cat-bridge-tests PRIVATE
     Qt6::Test
     Qt6::Network
     Qt6::Core
+    Qt6::Gui
 )
 target_compile_definitions(copilot-cat-bridge-tests PRIVATE
     SOURCE_DIR="${CMAKE_SOURCE_DIR}"

@@ -1,10 +1,18 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Window
 
-Item {
+Window {
     id: wizard
     visible: false
-    anchors.fill: parent
+    title: "Copilot Cat Setup"
+    width: 360
+    height: 320
+    minimumWidth: 300
+    minimumHeight: 280
+    color: "#1e1e2e"
+    x: (Screen.width - width) / 2
+    y: (Screen.height - height) / 2
 
     signal setupComplete()
 
@@ -15,6 +23,8 @@ Item {
     property string selectedModel: ""
     property var modelList: []
     property bool fetchingModels: false
+    property string copilotCode: ""
+    property bool copilotAuthPending: false
 
     function start() {
         currentStep = 0;
@@ -48,15 +58,20 @@ Item {
             wizard.visible = false;
             wizard.setupComplete();
         }
-    }
-
-    // Background
-    Rectangle {
-        anchors.fill: parent
-        color: "#1e1e2e"
-        radius: 14
-        border.color: "#89b4fa"
-        border.width: 2
+        function onCopilotDeviceCode(userCode, verificationUri) {
+            wizard.copilotCode = userCode;
+            wizard.copilotAuthPending = true;
+            wizard.currentStep = 4;
+        }
+        function onCopilotAuthSuccess() {
+            wizard.copilotAuthPending = false;
+            // configSaved is emitted by fetchCopilotToken -> saveConfig
+        }
+        function onCopilotAuthFailed(error) {
+            wizard.copilotAuthPending = false;
+            statusText.text = "Auth failed: " + error;
+            wizard.currentStep = 0;
+        }
     }
 
     // Title
@@ -67,9 +82,10 @@ Item {
         anchors.topMargin: 12
         text: {
             if (currentStep === 0) return "Welcome! Choose a backend:";
-            if (currentStep === 1) return "GitHub Copilot method:";
+            if (currentStep === 1) return "GitHub Copilot";
             if (currentStep === 2) return "Enter OpenRouter API key:";
             if (currentStep === 3) return "Select a model:";
+            if (currentStep === 4) return "GitHub Authorization";
             return "";
         }
         font.pixelSize: 13
@@ -126,45 +142,40 @@ Item {
         }
     }
 
-    // === STEP 1: GitHub Copilot method ===
+    // === STEP 1: GitHub Copilot — start device flow ===
     Column {
         visible: currentStep === 1
         anchors.centerIn: parent
-        spacing: 8
+        spacing: 10
+        width: parent.width - 24
 
-        Repeater {
-            model: [
-                { label: "gh CLI (recommended)", value: "gh" },
-                { label: "GitHub API", value: "github-api" }
-            ]
-            delegate: Rectangle {
-                width: 180; height: 32
-                radius: 8
-                color: ma1.containsMouse ? "#45475a" : "#313244"
-                border.color: "#89b4fa"; border.width: 1
+        Text {
+            text: "Requires a GitHub Copilot subscription."
+            font.pixelSize: 11
+            color: "#a6adc8"
+            width: parent.width
+            wrapMode: Text.WordWrap
+        }
 
-                Text {
-                    anchors.centerIn: parent
-                    text: modelData.label
-                    font.pixelSize: 12
-                    color: "#cdd6f4"
-                }
-                MouseArea {
-                    id: ma1
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        wizard.selectedMethod = modelData.value;
-                        var cfg = {
-                            backend: "command",
-                            command: modelData.value === "gh"
-                                ? "gh copilot suggest -t shell \"%MSG%\""
-                                : "curl -s -H \"Authorization: token $GITHUB_TOKEN\" https://api.github.com/copilot"
-                        };
-                        catConfig.saveConfig(cfg);
-                    }
-                }
+        Rectangle {
+            width: 180; height: 32
+            radius: 8
+            anchors.horizontalCenter: parent.horizontalCenter
+            color: copilotStartMa.containsMouse ? "#45475a" : "#313244"
+            border.color: "#a6e3a1"; border.width: 1
+
+            Text {
+                anchors.centerIn: parent
+                text: "Sign in with GitHub"
+                font.pixelSize: 12
+                color: "#cdd6f4"
+            }
+            MouseArea {
+                id: copilotStartMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: catConfig.startCopilotAuth()
             }
         }
 
@@ -176,6 +187,60 @@ Item {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 onClicked: wizard.currentStep = 0
+            }
+        }
+    }
+
+    // === STEP 4: Copilot — waiting for auth ===
+    Column {
+        visible: currentStep === 4
+        anchors.centerIn: parent
+        spacing: 10
+        width: parent.width - 24
+
+        Text {
+            text: "Enter this code in your browser:"
+            font.pixelSize: 12
+            color: "#cdd6f4"
+            horizontalAlignment: Text.AlignHCenter
+            width: parent.width
+        }
+
+        Rectangle {
+            width: 160; height: 40
+            radius: 10
+            anchors.horizontalCenter: parent.horizontalCenter
+            color: "#1e1e2e"
+            border.color: "#a6e3a1"; border.width: 2
+
+            TextEdit {
+                anchors.centerIn: parent
+                text: wizard.copilotCode
+                font.pixelSize: 20
+                font.bold: true
+                font.letterSpacing: 4
+                color: "#a6e3a1"
+                readOnly: true
+                selectByMouse: true
+            }
+        }
+
+        Text {
+            text: wizard.copilotAuthPending ? "Waiting for authorization..." : "Authorized!"
+            font.pixelSize: 11
+            color: "#a6adc8"
+            horizontalAlignment: Text.AlignHCenter
+            width: parent.width
+        }
+
+        Text {
+            text: "< Cancel"
+            font.pixelSize: 11
+            color: "#6c7086"
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: { catConfig.cancelCopilotAuth(); wizard.currentStep = 0; }
             }
         }
     }

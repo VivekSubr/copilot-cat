@@ -364,11 +364,11 @@ Window {
 
     Timer { id: autoDismiss; interval: 6000; onTriggered: hideBubble() }
 
-    // === CAT SPRITE (right side when bubble/wizard visible, centered otherwise) ===
+    // === CAT SPRITE (right side when bubble visible, centered otherwise) ===
     Item {
         id: sprite
-        width: (bubble.visible || setupWizard.visible) ? win.catSpriteWidth : 200
-        height: (bubble.visible || setupWizard.visible) ? 140 : 180
+        width: bubble.visible ? win.catSpriteWidth : 200
+        height: bubble.visible ? 140 : 180
         anchors.bottom: parent.bottom
         anchors.right: parent.right
 
@@ -499,12 +499,14 @@ Window {
                     if (win.catState === "pounce" || win.catState === "land") return;
                     if (bubble.visible) {
                         if (!win.bubbleIsInput) {
-                            hideBubble();
-                            // Go straight to chat instead of requiring extra clicks
+                            // Switch directly to chat input without resize flicker
                             win.chatMode = true;
                             win.chatReplyPending = false;
                             win.chatReplyReceived = false;
-                            showBubble("What's on your mind?", true);
+                            win.bubbleText = "What's on your mind?";
+                            win.bubbleIsInput = true;
+                            inputField.text = "";
+                            focusDelay.start();
                         }
                         return;
                     }
@@ -578,9 +580,11 @@ Window {
     }
 
     // === POUNCE ===
+    property bool introPlayed: false
     SequentialAnimation {
         id: introAnimation
-        running: !catConfig.needsSetup
+        running: !catConfig.needsSetup && !win.introPlayed
+        onStopped: win.introPlayed = true
         ParallelAnimation {
             NumberAnimation { target: win; property: "x"; from: -win.width; to: win.screenW / 4; duration: 700; easing.type: Easing.OutCubic }
             SequentialAnimation {
@@ -597,35 +601,26 @@ Window {
         ScriptAction { script: { hideBubble(); win.catState = "idle"; behaviorTimer.start(); } }
     }
 
-    // === SETUP WIZARD ===
+    // === SETUP WIZARD (separate window) ===
     SetupWizard {
         id: setupWizard
-        x: 10
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 20
-        width: win.bubbleWidth - 20
-        height: 220
-        z: 1
         onSetupComplete: {
             setupWizard.visible = false;
+            win.catState = "idle";
             win.width = win.compactWidth;
             win.height = win.compactHeight;
             win.y = win.restY;
-            win.catState = "idle";
             behaviorTimer.start();
             showBubble("Purrfect! I'm all set up! Click me to chat!", false);
         }
     }
 
-    // Setup wizard initialization — runs once at startup before anything else
+    // Setup wizard initialization
     Component.onCompleted: {
         if (catConfig.needsSetup) {
-            win.catState = "peek";
-            win.facingRight = true;
-            win.width = win.compactWidth + win.bubbleWidth + win.bubblePadding;
-            win.height = 300;
-            win.x = (win.screenW - win.width) / 2;
-            win.y = win.catBottom - win.height;
+            win.catState = "sit";
+            win.x = win.screenW / 2 - win.compactWidth / 2;
+            win.y = win.restY;
             bubble.visible = false;
             setupWizard.start();
         }

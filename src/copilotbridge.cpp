@@ -37,6 +37,12 @@ void CopilotBridge::sendMessage(const QString &message)
         setBusy(false);
         return;
     }
+    if (backend == "copilot") {
+        if (!m_config->copilotToken().isEmpty()) { sendViaCopilot(message); return; }
+        emit errorOccurred("Copilot not authenticated. Run setup again.");
+        setBusy(false);
+        return;
+    }
     if (backend == "command") {
         if (!m_config->processCommand().isEmpty()) { sendViaProcess(message); return; }
         emit errorOccurred("COPILOT_CAT_CMD not set.");
@@ -45,7 +51,9 @@ void CopilotBridge::sendMessage(const QString &message)
     }
 
     // "auto" — try in priority order
-    if (!m_config->openRouterKey().isEmpty())
+    if (!m_config->copilotToken().isEmpty())
+        sendViaCopilot(message);
+    else if (!m_config->openRouterKey().isEmpty())
         sendViaOpenRouter(message);
     else if (!m_config->processCommand().isEmpty())
         sendViaProcess(message);
@@ -108,6 +116,76 @@ void CopilotBridge::sendViaOpenRouter(const QString &message)
         if (text.isEmpty()) {
             qWarning() << "OpenRouter empty response:" << data.left(500);
             emit errorOccurred("Empty response from OpenRouter.");
+            setBusy(false);
+            return;
+        }
+
+        QJsonObject assistantMsg;
+        assistantMsg["role"] = "assistant";
+        assistantMsg["content"] = text;
+        m_chatHistory.append(assistantMsg);
+
+        emit responseReceived(text);
+        setBusy(false);
+    });
+}
+
+void CopilotBridge::sendViaCopilot(const QString &message)
+{
+    QJsonObject userMsg;
+    userMsg["role"] = "user";
+    userMsg["content"] = message;
+    m_chatHistory.append(userMsg);
+
+    while (m_chatHistory.size() > 20)
+        m_chatHistory.removeFirst();
+
+    QJsonArray messages;
+    QJsonObject sysMsg;
+    sysMsg["role"] = "system";
+    sysMsg["content"] = QString(SYSTEM_PROMPT);
+    messages.append(sysMsg);
+    for (const auto &msg : m_chatHistory)
+        messages.append(msg);
+
+    QJsonObject body;
+    body["model"] = QString("gpt-4o");
+    body["messages"] = messages;
+    body["max_tokens"] = 200;
+    body["stream"] = false;
+
+    QNetworkRequest req(QUrl("https://api.githubcopilot.com/chat/completions"));
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    req.setRawHeader("Authorization", ("Bearer " + m_config->copilotToken()).toUtf8());
+    req.setRawHeader("editor-version", "vscode/1.100.0");
+    req.setRawHeader("editor-plugin-version", "copilot-chat/0.26.7");
+    req.setRawHeader("user-agent", "GitHubCopilotChat/0.26.7");
+    req.setRawHeader("copilot-integration-id", "vscode-chat");
+    req.setRawHeader("openai-intent", "conversation-panel");
+    req.setRawHeader("x-github-api-version", "2025-04-01");
+
+    auto *reply = m_network.post(req, QJsonDocument(body).toJson(QJsonDocument::Compact));
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        reply->deleteLater();
+
+        if (reply->error() != QNetworkReply::NoError) {
+            int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+            auto body = reply->readAll();
+            qWarning() << "Copilot HTTP" << status << reply->errorString();
+            qWarning() << "Copilot response:" << body.left(500);
+            emit errorOccurred(QString("Copilot HTTP %1: %2").arg(status).arg(reply->errorString()));
+            setBusy(false);
+            return;
+        }
+
+        auto data = reply->readAll();
+        auto doc = QJsonDocument::fromJson(data);
+        QString text = doc["choices"][0]["message"]["content"].toString().trimmed();
+
+        if (text.isEmpty()) {
+            qWarning() << "Copilot empty response:" << data.left(500);
+            emit errorOccurred("Empty response from Copilot.");
             setBusy(false);
             return;
         }
