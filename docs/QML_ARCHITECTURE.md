@@ -12,10 +12,9 @@ This document provides a comprehensive technical reference for how QML is used i
 4. [ReplyBubble.qml](#4-replybubbleqml)
 5. [ThoughtBubble.qml](#5-thoughtbubbleqml)
 6. [CatSprite.qml](#6-catspriteqml)
-7. [Debug.qml](#7-debugqml)
-8. [C++ ↔ QML Interface](#8-c--qml-interface)
-9. [QML Patterns Used](#9-qml-patterns-used)
-10. [Testing QML](#10-testing-qml)
+7. [C++ ↔ QML Interface](#7-c--qml-interface)
+8. [QML Patterns Used](#8-qml-patterns-used)
+9. [Testing QML](#9-testing-qml)
 
 ---
 
@@ -111,7 +110,7 @@ Window {
 
 | Flag | Purpose |
 |------|---------|
-| `Qt.FramelessWindowHint` | Removes the title bar and window borders (safe in compiled builds, crashes qmlscene — see [Debug.qml](#7-debugqml)) |
+| `Qt.FramelessWindowHint` | Removes the title bar and window borders |
 | `Qt.WindowStaysOnTopHint` | Keeps the cat above all other windows |
 | `Qt.WA_TranslucentBackground` | Enables per-pixel transparency so the cat appears to float on the desktop |
 | `color: "transparent"` | Makes the window background fully transparent |
@@ -827,7 +826,7 @@ The `Connections` element to `catConfig` handles all asynchronous events:
 
 ## 4. ReplyBubble.qml
 
-> **Note:** `ReplyBubble.qml` is a standalone component used in `Debug.qml`. In `Main.qml`, the bubble is implemented inline within the main window.
+> **Note:** `ReplyBubble.qml` is a standalone component. In `Main.qml`, the bubble is implemented inline within the main window.
 
 ### Component Structure
 
@@ -1095,73 +1094,7 @@ However, the SVG approach is used in production because:
 
 ---
 
-## 7. Debug.qml
-
-### How It Differs from Main.qml
-
-`Debug.qml` is the development version designed to run standalone in `qmlscene` (no compilation needed). Key differences:
-
-| Feature | Main.qml (compiled) | Debug.qml (qmlscene) |
-|---------|---------------------|----------------------|
-| **Window flag** | `Qt.FramelessWindowHint` | `Qt.SplashScreen` |
-| **WebSocket** | Active when backend is `"auto"` or `"mcp"` | Always active |
-| **Chat routing** | Routes via WebSocket or CopilotBridge | WebSocket only |
-| **Walk frames** | 8 (`cat_walk_b1..b8`) | 4 (`cat_walk1..4`) |
-| **Tail swish frames** | 8 | 4 |
-| **Image loading** | `asynchronous: false` | `asynchronous: true` |
-| **Setup wizard** | Integrated | Not present |
-| **CopilotBridge** | Used for non-MCP backends | Not present |
-| **Walk speed** | 3px/tick, frame mod 3 | 4px/tick, frame mod 5 |
-| **Y-axis bobbing** | Yes | No |
-| **Peek state** | Yes (`cat_peek.svg`) | No |
-| **Starting X** | `0` | `-width` (off-screen left) |
-| **Dedup debug logging** | Verbose (send/recv counters) | Minimal |
-| **Intro animation** | Conditional (`!needsSetup && !introPlayed`) | Always plays |
-| **Bubble TextEdit** | `TextEdit` (selectable) | `Text` (non-selectable, in Flickable) |
-
-### SplashScreen Flag vs FramelessWindowHint
-
-```qml
-// Debug.qml
-flags: Qt.SplashScreen | Qt.WindowStaysOnTopHint
-
-// Main.qml
-flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WA_TranslucentBackground
-```
-
-`Qt.FramelessWindowHint` causes `qmlscene` to crash on Windows when combined with transparent backgrounds. `Qt.SplashScreen` achieves a similar effect (no title bar, transparent background) but is stable in qmlscene. The compiled build (`Main.qml`) can safely use `FramelessWindowHint` because Qt handles the window creation differently in compiled mode.
-
-### WebSocket Client for MCP Server
-
-In `Debug.qml`, the WebSocket is always active (`active: true`) since it's the only communication channel — there is no `copilotBridge` object. Chat messages go exclusively through the MCP server:
-
-```qml
-onAccepted: {
-    if (!win.wsConnected) {
-        win.bubbleText = "Meow! Not connected to MCP server.";
-        return;
-    }
-    if (win.chatMode) {
-        sendToMcp({ type: "chat", text: msg });
-    } else {
-        sendToMcp({ type: "user_response", text: msg });
-    }
-}
-```
-
-### Hardcoded Asset Paths
-
-Both `Debug.qml` and `Main.qml` use hardcoded absolute paths:
-
-```qml
-source: "file:///C:/Software/copilot-cat/assets/cat_idle.svg"
-```
-
-These paths must be updated manually if the repository is cloned to a different location.
-
----
-
-## 8. C++ ↔ QML Interface
+## 7. C++ ↔ QML Interface
 
 ### Context Properties
 
@@ -1328,7 +1261,7 @@ User clicks cat          User types message          MCP server sends command
 
 ---
 
-## 9. QML Patterns Used
+## 8. QML Patterns Used
 
 ### Property Bindings (Reactive UI Updates)
 
@@ -1440,7 +1373,7 @@ height: {
 
 ---
 
-## 10. Testing QML
+## 9. Testing QML
 
 ### Qt Quick Test Framework
 

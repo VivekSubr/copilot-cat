@@ -1,10 +1,25 @@
 # copilot-cat
 
-Desktop pet cat UI plus MCP server for GitHub Copilot.
+Desktop pet cat that serves as a visual interface for GitHub Copilot via MCP.
+
+![Copilot Cat chatting on the desktop](assets/copilot-cat.png)
 
 ## Build
 
-```sh
+### Cat UI (compiled C++ exe)
+
+```powershell
+cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2022_64_static -DQT_STATIC=ON
+cmake --build build --config Release
+```
+
+Produces a single exe (`build\Release\copilot-cat.exe`) with Qt linked statically. On first launch a setup wizard guides you through backend configuration (GitHub Copilot or OpenRouter).
+
+![Setup wizard — choose a backend](assets/cat-install.jpg)
+
+### MCP Server (Node.js)
+
+```powershell
 npm install
 npm run build
 ```

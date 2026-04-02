@@ -60,9 +60,13 @@ void CatConfig::loadConfig(const QJsonObject &config)
         m_processCommand = config["command"].toString();
     if (config.contains("github_token")) {
         m_githubToken = config["github_token"].toString();
-        if (m_backend == "copilot" && !m_githubToken.isEmpty())
-            fetchCopilotToken();
     }
+}
+
+void CatConfig::initBackend()
+{
+    if (m_backend == "copilot" && !m_githubToken.isEmpty())
+        fetchCopilotToken();
 }
 
 void CatConfig::saveConfig(const QVariantMap &config)
@@ -269,6 +273,7 @@ void CatConfig::scheduleCopilotTokenRefresh(int refreshInSecs)
     if (ms < 60000) ms = 60000;
 
     m_tokenRefreshTimer.stop();
+    m_tokenRefreshTimer.disconnect();
     m_tokenRefreshTimer.setSingleShot(true);
     connect(&m_tokenRefreshTimer, &QTimer::timeout, this, [this]() {
         qInfo() << "Refreshing Copilot token...";

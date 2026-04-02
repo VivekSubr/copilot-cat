@@ -6,7 +6,7 @@ import QtWebSockets
 Window {
     id: win
     visible: true
-    flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WA_TranslucentBackground
+    flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
 
     property int compactWidth: 200

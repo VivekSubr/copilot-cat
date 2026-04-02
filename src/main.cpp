@@ -122,6 +122,9 @@ int main(int argc, char *argv[])
 
     // Enable transparent windows on Windows
     QQuickWindow::setDefaultAlphaBuffer(true);
+    // Use software renderer — avoids GPU compositing flicker with
+    // transparent frameless windows on Windows DWM
+    QQuickWindow::setGraphicsApi(QSGRendererInterface::Software);
 
     QGuiApplication app(argc, argv);
 
@@ -169,6 +172,10 @@ int main(int argc, char *argv[])
     // CLI --backend overrides config file
     if (backend)
         config.setBackend(QString::fromUtf8(backend));
+
+    // Start backend (e.g. fetch Copilot token) after all config is resolved
+    if (configLoaded)
+        config.initBackend();
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("catConfig", &config);

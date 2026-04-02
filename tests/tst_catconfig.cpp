@@ -241,6 +241,76 @@ private slots:
                     qPrintable("Missing :free suffix: " + model["id"].toString()));
         }
     }
+
+    void test_saveConfig_copilot_no_token_loop()
+    {
+        // Regression: saveConfig() calls loadConfig() internally.
+        // loadConfig() must NOT call fetchCopilotToken(), otherwise
+        // fetchCopilotToken → saveConfig → loadConfig → fetchCopilotToken
+        // creates an infinite loop.
+        QTemporaryDir tempDir;
+        QVERIFY(tempDir.isValid());
+
+        CatConfig config;
+        config.setConfigPath(tempDir.path() + "/copilot-cat.json");
+
+        QSignalSpy savedSpy(&config, &CatConfig::configSaved);
+        QSignalSpy authSpy(&config, &CatConfig::copilotAuthSuccess);
+        QSignalSpy failSpy(&config, &CatConfig::copilotAuthFailed);
+
+        QVariantMap cfg;
+        cfg["backend"] = "copilot";
+        cfg["github_token"] = "ghu_faketoken123";
+        config.saveConfig(cfg);
+
+        // saveConfig should emit exactly once (no loop)
+        QCOMPARE(savedSpy.count(), 1);
+
+        // loadConfig inside saveConfig must not trigger fetchCopilotToken,
+        // so no auth signals should fire synchronously
+        QCOMPARE(authSpy.count(), 0);
+        QCOMPARE(failSpy.count(), 0);
+    }
+
+    void test_initBackend_triggers_copilot_token_fetch()
+    {
+        CatConfig config;
+
+        QJsonObject cfg;
+        cfg["backend"] = "copilot";
+        cfg["github_token"] = "ghu_faketoken123";
+        config.loadConfig(cfg);
+
+        QSignalSpy failSpy(&config, &CatConfig::copilotAuthFailed);
+
+        // loadConfig alone must NOT trigger token fetch
+        QCOMPARE(failSpy.count(), 0);
+
+        // initBackend should trigger fetchCopilotToken (which will fail
+        // with a fake token, emitting copilotAuthFailed)
+        config.initBackend();
+        QVERIFY2(failSpy.wait(10000), "initBackend should trigger fetchCopilotToken");
+        QCOMPARE(failSpy.count(), 1);
+    }
+
+    void test_loadConfig_copilot_does_not_fetch()
+    {
+        // loadConfig with a copilot backend + github_token must NOT
+        // trigger any network requests by itself
+        CatConfig config;
+        QSignalSpy authSpy(&config, &CatConfig::copilotAuthSuccess);
+        QSignalSpy failSpy(&config, &CatConfig::copilotAuthFailed);
+
+        QJsonObject cfg;
+        cfg["backend"] = "copilot";
+        cfg["github_token"] = "ghu_faketoken456";
+        config.loadConfig(cfg);
+
+        // Wait briefly — no signals should fire
+        QTest::qWait(500);
+        QCOMPARE(authSpy.count(), 0);
+        QCOMPARE(failSpy.count(), 0);
+    }
 };
 
 QTEST_MAIN(TestCatConfig)

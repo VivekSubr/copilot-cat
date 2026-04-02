@@ -86,7 +86,7 @@ To replace the current SVG sprite system with 3D rendering:
    target_link_libraries(copilot-cat PRIVATE Qt6::Quick3D)
    ```
 
-2. **Replace SVG Image elements** in `Main.qml` / `Debug.qml` with a
+2. **Replace SVG Image elements** in `Main.qml` with a
    `View3D` viewport containing the cat `Model`.
 
 3. **Animation system**: Replace sprite-frame switching with skeletal
@@ -148,7 +148,7 @@ To replace the current SVG sprite system with 3D rendering:
 - [ ] Implement `AnimationController` in QML
 
 ### Phase 3: Integration
-- [ ] Replace `Image` sprite in Debug.qml with `View3D`
+- [ ] Replace `Image` sprite in Main.qml with `View3D`
 - [ ] Map existing animation state machine to 3D animations
 - [ ] Handle transparency overlay on desktop
 - [ ] Test performance on target platforms

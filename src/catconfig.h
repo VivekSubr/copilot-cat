@@ -32,6 +32,7 @@ public:
     void setConfigPath(const QString &path);
     void setNeedsSetup(bool needs);
     void setBackend(const QString &backend);
+    void initBackend();
 
     QString backend() const { return m_backend; }
     bool needsSetup() const { return m_needsSetup; }
